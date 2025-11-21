@@ -38,3 +38,7 @@ build/
 ### Application specific ###
 *.log
 logs/
+
+# Local configuration files with sensitive data
+**/application-local.properties
+application-local.properties
