@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPower - Professional Fitness App</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="background-elements">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-shapes">
+        <div class="bg-shape bg-shape-1"></div>
+        <div class="bg-shape bg-shape-2"></div>
+        <div class="bg-shape bg-shape-3"></div>
+    </div>
+</div>
+
+<div class="main-glass-container">
+    
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="/" class="nav-logo">
+                    <div class="logo-circle"></div>
+                    <span>FitPower</span>
+                </a>
+                <div class="nav-menu-indicator">
+                    <span class="nav-item">Workouts</span>
+                    <span class="nav-separator">•</span>
+                    <span class="nav-item">Community</span>
+                    <span class="nav-separator">•</span>
+                    <span class="nav-item">Support</span>
+                </div>
+                <div class="nav-auth">
+                    <form th:if="${#authorization.expression('isAuthenticated()')}"
+                          th:action="@{/logout}" method="post" style="display:inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-outline">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                    <a th:if="${!#authorization.expression('isAuthenticated()')}" href="/login" class="btn btn-glass">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </a>
+                    <a th:if="${!#authorization.expression('isAuthenticated()')}" href="/register" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        Register
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    
+    <main class="main-content">
+        
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        Transform Your Life with
+                        <span class="gradient-text">FitPower</span>
+                    </h1>
+                    <p class="hero-description">
+                        The ultimate fitness companion that helps you achieve your health and wellness goals through personalized workouts, nutrition tracking, and progress monitoring.
+                    </p>
+                    <div class="hero-actions">
+                        
+                        <a th:if="${!#authorization.expression('isAuthenticated()')}" href="/register" class="btn btn-primary btn-large" aria-label="Start your training journey">
+                            <i class="fas fa-rocket"></i>
+                            Start Your Journey
+                        </a>
+                        <a th:if="${!#authorization.expression('isAuthenticated()')}" href="#features" class="btn btn-outline btn-large" aria-label="Learn more about features">
+                            <i class="fas fa-play"></i>
+                            Learn More
+                        </a>
+                        
+                        
+                        <div th:if="${#authorization.expression('isAuthenticated()')}" class="authenticated-hero-content">
+                            <p class="logged-in-text">You are signed in as <strong th:text="${#authentication.name}">user</strong>.</p>
+                            <a href="/dashboard" class="btn btn-primary btn-large" aria-label="Go to dashboard">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Go to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-devices">
+                    <div class="device-laptop">
+                        <div class="laptop-screen">
+                            <div class="screen-content">
+                                <div class="screen-bar"></div>
+                                <div class="screen-bar"></div>
+                                <div class="screen-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="device-phone">
+                        <div class="phone-screen">
+                            <div class="screen-content">
+                                <div class="screen-bar"></div>
+                                <div class="screen-bar"></div>
+                                <div class="screen-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+        <section class="features-cards" id="features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Personalized Workouts</h3>
+                    <p>Plans that adapt to your goals, time, and available equipment.</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Advanced Methods</h3>
+                    <p>Drop sets, supersets, a built-in rest timer to structure intensity between sets.</p>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Progress Insights</h3>
+                    <p>Track PRs, weekly summaries, and streaks to keep consistency high.</p>
+                </div>
+            </div>
+        </section>
+
+        
+        <section class="welcome-section">
+            <div class="welcome-content" th:if="${#authorization.expression('isAuthenticated()')}">
+                <div class="welcome-card">
+                    <div class="welcome-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h2>Welcome back!</h2>
+                    <p>You are signed in as <strong th:text="${#authentication.name}">user</strong>.</p>
+                    <div class="welcome-actions">
+                        <a href="/dashboard" class="btn btn-primary">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="welcome-content" th:if="${!#authorization.expression('isAuthenticated()')}">
+                <div class="welcome-card">
+                    <div class="welcome-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h2>Ready to get started?</h2>
+                    <p>Join thousands of fitness enthusiasts who are already transforming their lives with FitPower.</p>
+                    <div class="welcome-actions">
+                        <a href="/register" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i>
+                            Create Account
+                        </a>
+                        <a href="/login" class="btn btn-outline">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    // Smooth scrolling and interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add subtle animations on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.feature-card, .welcome-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+</body>
+</html>

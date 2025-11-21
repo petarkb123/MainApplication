@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPower - Workout Session</title>
+    <link rel="stylesheet" th:href="@{/css/workouts.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>FitPower</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/exercises" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Exercises</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="/workouts" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            <span>Workouts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/templates" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Templates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/stats/weekly" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none; border:none; width:100%; text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <main class="main-content">
+        
+        <header class="top-header">
+            <div class="header-left">
+                <h1 class="page-title">Workout Session</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name" th:text="${username}">User</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        
+        <div class="dashboard-content">
+            
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <i class="fas fa-dumbbell"></i>
+                        Workout Session
+                    </h1>
+                    <p class="page-subtitle">Log your sets and track your progress</p>
+                    <div id="sessionTimer" style="margin-top:6px; color:#b8bdfd; font-weight:600;">
+                        <i class="fas fa-clock"></i>
+                        <span id="timerText">00:00:00</span>
+                    </div>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-success" onclick="finishWorkout()">
+                        <i class="fas fa-check"></i>
+                        Finish Workout
+                    </button>
+                </div>
+            </div>
+
+            
+            <div class="workout-session">
+                
+                <div class="add-exercise-section">
+                    <button class="btn btn-primary" onclick="openAddExerciseModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Exercise
+                    </button>
+                    <button class="btn btn-outline" onclick="createSuperset()" title="Merge 2 selected exercises into superset">
+                        <i class="fas fa-link"></i>
+                        Create Superset
+                    </button>
+                </div>
+
+                
+                <div class="exercises-list" id="exercisesList">
+                    
+                </div>
+
+                
+                <div class="empty-workout" id="emptyWorkout">
+                    <div class="empty-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <h3>No exercises added yet</h3>
+                    <p>Start by adding your first exercise to begin your workout!</p>
+                    <button class="btn btn-primary" onclick="openAddExerciseModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Your First Exercise
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="addExerciseModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">Add Exercise</h2>
+            <button class="modal-close" onclick="closeAddExerciseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-content">
+            <div class="form-group">
+                <label class="form-label">Select Exercise</label>
+                <select id="exerciseSelect" class="form-select">
+                    <option value="">Choose an exercise...</option>
+                    <optgroup label="My exercises" th:if="${not #lists.isEmpty(exercises)}">
+                        <option th:each="exercise : ${exercises}"
+                                th:if="${!exercise.builtIn}"
+                                th:value="${exercise.id}"
+                                th:text="${exercise.name}"></option>
+                    </optgroup>
+                    <optgroup label="Built-in" th:if="${not #lists.isEmpty(exercises)}">
+                        <option th:each="exercise : ${exercises}"
+                                th:if="${exercise.builtIn}"
+                                th:value="${exercise.id}"
+                                th:text="${exercise.name}"></option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeAddExerciseModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="addExerciseToWorkout()">Add Exercise</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let exerciseCounter = 0;
+
+    // Server data: usually [{id,name,muscleGroup|primaryMuscle,ownerUserId|builtIn}]
+    const exercisesRaw = /*[[${exercises}]]*/ [];
+
+    // Session id for submit payload
+    const workoutSessionId = /*[[${sessionId}]]*/ null;
+
+    // For detecting built-ins when only ownerUserId is provided
+    const SYSTEM_USER_ID = /*[[${T(project.fitnessapplication.config.SystemDefault).SYSTEM_USER_ID}]]*/ null;
+
+    // Normalize shape + builtIn flag so grouping works everywhere
+    const exercises = (exercisesRaw || []).map(ex => {
+        const mg = ex.muscleGroup ?? ex.primaryMuscle ?? 'OTHER';
+        const hasBuiltProp = Object.prototype.hasOwnProperty.call(ex, 'builtIn');
+        const builtIn = hasBuiltProp ? !!ex.builtIn
+            : String(ex.ownerUserId ?? '') === String(SYSTEM_USER_ID ?? '');
+        return { ...ex, muscleGroup: mg, builtIn };
+    });
+    
+    // Existing sets when continuing a workout
+    const existingSetsRaw = /*[[${existingSets}]]*/ null;
+    const existingSets = existingSetsRaw || [];
+    const startedAtIso = /*[[${startedAt}]]*/ null;
+    const draftKey = workoutSessionId ? (`workoutDraft:${workoutSessionId}`) : null;
+</script>
+
+<script>
+    // ---------- options (same logic as create/edit) ----------
+    function groupByMuscle(items) {
+        return items.reduce((acc, ex) => {
+            const k = ex.muscleGroup || 'OTHER';
+            (acc[k] ||= []).push(ex);
+            return acc;
+        }, {});
+    }
+
+    function optgroupsFor(prefix, arr) {
+        const by = groupByMuscle(arr);
+        const order = ['CHEST','BACK','LEGS','SHOULDERS','BICEPS','TRICEPS','FOREARMS','HAMSTRINGS','CALVES','CORE','OTHER'];
+        return order
+            .filter(k => by[k] && by[k].length)
+            .map(k => {
+                const opts = by[k]
+                    .slice()
+                    .sort((a,b) => a.name.localeCompare(b.name))
+                    .map(ex => `<option value="${ex.id}">${ex.name}</option>`)
+                    .join('');
+                return `<optgroup label="${prefix} — ${k}">${opts}</optgroup>`;
+            })
+            .join('');
+    }
+
+    function optionHtml() {
+        if (!exercises || exercises.length === 0) return '<option value="">No exercises</option>';
+
+        const mine     = exercises.filter(ex => !ex.builtIn);
+        const builtIns = exercises.filter(ex =>  ex.builtIn);
+
+        let html = '<option value="">Select Exercise</option>';
+        html += optgroupsFor('My exercises', mine);
+        html += '<option value="" disabled>&nbsp;</option>';
+        html += optgroupsFor('Built-in', builtIns);
+        return html;
+    }
+
+
+    function populateExerciseSelect() {
+        const sel = document.getElementById('exerciseSelect');
+        if (sel) sel.innerHTML = optionHtml();
+    }
+
+    // ---------- modal ----------
+    function openAddExerciseModal() {
+        populateExerciseSelect(); // keep options fresh
+        const m = document.getElementById('addExerciseModal');
+        m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
+    }
+    function closeAddExerciseModal() {
+        const m = document.getElementById('addExerciseModal');
+        m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
+    }
+
+    // ---------- add/remove exercises & sets ----------
+    function addExerciseToWorkout() {
+        const select = document.getElementById('exerciseSelect');
+        const exerciseId = select.value;
+        if (!exerciseId) { alert('Please select an exercise'); return; }
+        const exercise = exercises.find(ex => String(ex.id) === String(exerciseId));
+        if (!exercise) { alert('Exercise not found'); return; }
+        addExerciseCard(exercise);
+        select.value = '';
+        closeAddExerciseModal();
+    }
+
+    function addExerciseCard(exercise) {
+        const exercisesList = document.getElementById('exercisesList');
+        const emptyWorkout = document.getElementById('emptyWorkout');
+        if (emptyWorkout) emptyWorkout.style.display = 'none';
+
+        const exerciseCard = document.createElement('div');
+        exerciseCard.className = 'exercise-card';
+        exerciseCard.id = `exercise-${exerciseCounter}`;
+        exerciseCard.setAttribute('data-exercise-id', exercise.id);
+
+        exerciseCard.innerHTML = `
+      <div class="exercise-header">
+        <input type="checkbox" class="exercise-select" title="Select for grouping">
+        <div class="exercise-info">
+          <h3 class="exercise-name">${exercise.name}</h3>
+          <span class="exercise-muscle">${exercise.muscleGroup}</span>
+        </div>
+        <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+      <div class="sets-container">
+        <div class="sets-header">
+          <span>Sets</span>
+          <button class="btn btn-sm btn-outline" onclick="addSet(${exerciseCounter})">
+            <i class="fas fa-plus"></i> Add Set
+          </button>
+        </div>
+        <div class="sets-list" id="sets-${exerciseCounter}"></div>
+      </div>
+    `;
+
+        exercisesList.appendChild(exerciseCard);
+        
+        // Auto-create sets if targetSets is provided (from template), otherwise add one default set
+        const targetSets = exercise.targetSets || 1;
+        for (let i = 0; i < targetSets; i++) {
+            addSet(exerciseCounter);
+        }
+        
+        exerciseCounter++;
+    }
+
+    function addSet(exerciseIndex, isDropSet = false, dropSetLevel = 0) {
+        const setsList = document.getElementById(`sets-${exerciseIndex}`);
+        const setNumber = setsList.children.length + 1;
+
+        const row = document.createElement('div');
+        row.className = 'set-row' + (isDropSet ? ' drop-set-row' : '');
+        row.setAttribute('data-drop-level', dropSetLevel);
+        
+        const dropSetLabel = isDropSet ? ` <span class="drop-badge">Drop ${dropSetLevel}</span>` : '';
+        
+        row.innerHTML = `
+      <div class="set-number">${setNumber}${dropSetLabel}</div>
+      <div class="set-inputs">
+        <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5">
+        <span class="input-label">kg</span>
+        <input type="number" class="form-input" placeholder="Reps" min="1">
+        <span class="input-label">reps</span>
+      </div>
+      <div class="set-actions">
+        ${!isDropSet ? '<button class="btn-icon btn-drop" onclick="addDropSet(this)" title="Add drop set"><i class="fas fa-layer-group"></i></button>' : ''}
+        <button class="btn-icon btn-remove" onclick="removeSet(this)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+        setsList.appendChild(row);
+        renumberSets(exerciseIndex);
+    }
+    
+    function addDropSet(btn) {
+        const currentRow = btn.closest('.set-row');
+        const setsList = currentRow.parentElement;
+        const exerciseIndex = setsList.id.replace('sets-', '');
+        const currentLevel = parseInt(currentRow.getAttribute('data-drop-level') || '0');
+        
+        // If this is a main set (level 0), mark it as having drops and generate groupId
+        if (currentLevel === 0) {
+            currentRow.setAttribute('data-has-drops', 'true');
+            if (!currentRow.getAttribute('data-group-id')) {
+            currentRow.setAttribute('data-group-id', generateUUID());
+            }
+        }
+        
+        // Find the next drop level for this set
+        let nextDropLevel = currentLevel + 1;
+        let insertAfter = currentRow;
+        
+        // Find where to insert (after all existing drop sets of this set)
+        let nextSibling = currentRow.nextElementSibling;
+        while (nextSibling && nextSibling.classList.contains('drop-set-row')) {
+            const siblingLevel = parseInt(nextSibling.getAttribute('data-drop-level') || '0');
+            if (siblingLevel <= currentLevel) break;
+            nextDropLevel = Math.max(nextDropLevel, siblingLevel + 1);
+            insertAfter = nextSibling;
+            nextSibling = nextSibling.nextElementSibling;
+        }
+        
+        const dropRow = document.createElement('div');
+        dropRow.className = 'set-row drop-set-row';
+        dropRow.setAttribute('data-drop-level', nextDropLevel);
+        dropRow.style.marginLeft = (nextDropLevel * 20) + 'px';
+        
+        dropRow.innerHTML = `
+      <div class="set-number"><span class="drop-badge">Drop ${nextDropLevel}</span></div>
+      <div class="set-inputs">
+        <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5">
+        <span class="input-label">kg</span>
+        <input type="number" class="form-input" placeholder="Reps" min="1">
+        <span class="input-label">reps</span>
+      </div>
+      <div class="set-actions">
+        <button class="btn-icon btn-drop" onclick="addDropSet(this)" title="Add another drop"><i class="fas fa-layer-group"></i></button>
+        <button class="btn-icon btn-remove" onclick="removeSet(this)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+        
+        insertAfter.after(dropRow);
+        renumberSets(exerciseIndex);
+    }
+    
+    function renumberSets(exerciseIndex) {
+        const setsList = document.getElementById(`sets-${exerciseIndex}`);
+        const rows = setsList.querySelectorAll('.set-row');
+        let mainSetNum = 0;
+        
+        rows.forEach((row) => {
+            const isDropSet = row.classList.contains('drop-set-row');
+            if (!isDropSet) {
+                mainSetNum++;
+                const dropLevel = parseInt(row.getAttribute('data-drop-level') || '0');
+                row.querySelector('.set-number').innerHTML = `${mainSetNum}`;
+            }
+        });
+    }
+
+    function removeSet(btn) {
+        const row = btn.closest('.set-row');
+        const list = row.parentElement;
+        const exerciseIndex = list.id.replace('sets-', '');
+        
+        // If removing a main set, also remove its drop sets
+        if (!row.classList.contains('drop-set-row')) {
+            let nextSibling = row.nextElementSibling;
+            while (nextSibling && nextSibling.classList.contains('drop-set-row')) {
+                const toRemove = nextSibling;
+                nextSibling = nextSibling.nextElementSibling;
+                toRemove.remove();
+            }
+        }
+        
+        row.remove();
+        renumberSets(exerciseIndex);
+    }
+
+    function removeExercise(exIdx) {
+        const card = document.getElementById(`exercise-${exIdx}`);
+        card.remove();
+        const list = document.getElementById('exercisesList');
+        const empty = document.getElementById('emptyWorkout');
+        if (list.children.length === 0 && empty) empty.style.display = 'block';
+    }
+
+    // ---------- submit ----------
+    function finishWorkout() {
+        const cards = document.querySelectorAll('.exercise-card');
+        if (cards.length === 0) { alert('Please add at least one exercise'); return; }
+
+        const payload = { sessionId: workoutSessionId, exercises: [] };
+
+        cards.forEach(card => {
+            const isSuperset = card.getAttribute('data-is-superset') === 'true';
+            
+            if (isSuperset) {
+                // Handle superset card - creates sets for BOTH exercises
+                const ex1Id = card.getAttribute('data-exercise-id-1');
+                const ex2Id = card.getAttribute('data-exercise-id-2');
+                const groupId = generateUUID();
+                
+                const ex1Sets = [];
+                const ex2Sets = [];
+                
+                card.querySelectorAll('.superset-set-row').forEach((row, setIndex) => {
+                    const inputs = row.querySelectorAll('input');
+                    const w1 = inputs[0].value, r1 = inputs[1].value;
+                    const w2 = inputs[2].value, r2 = inputs[3].value;
+                    
+                    const weight1 = w1 ? parseFloat(w1) : 0;
+                    const reps1 = r1 ? parseInt(r1, 10) : 0;
+                    const weight2 = w2 ? parseFloat(w2) : 0;
+                    const reps2 = r2 ? parseInt(r2, 10) : 0;
+                    
+                    if (weight1 > 0 && reps1 > 0) {
+                        ex1Sets.push({ weight: weight1, reps: reps1, groupId, groupType: 'SUPERSET', groupOrder: 1, setNumber: setIndex + 1 });
+                    }
+                    if (weight2 > 0 && reps2 > 0) {
+                        ex2Sets.push({ weight: weight2, reps: reps2, groupId, groupType: 'SUPERSET', groupOrder: 2, setNumber: setIndex + 1 });
+                    }
+                });
+                
+                if (ex1Sets.length > 0) payload.exercises.push({ exerciseId: ex1Id, sets: ex1Sets });
+                if (ex2Sets.length > 0) payload.exercises.push({ exerciseId: ex2Id, sets: ex2Sets });
+                
+            } else {
+                // Handle regular exercise card
+                const exerciseId = card.getAttribute('data-exercise-id');
+                const sets = [];
+                let mainSetIndex = 0;
+                
+                card.querySelectorAll('.set-row').forEach(row => {
+                    const isDropSet = row.classList.contains('drop-set-row');
+                    const dropLevel = parseInt(row.getAttribute('data-drop-level') || '0');
+                    
+                    const inputs = row.querySelectorAll('input[placeholder]');
+                    const w = inputs[0]?.value;
+                    const r = inputs[1]?.value;
+                    const weight = w ? parseFloat(w) : 0;
+                    const reps = r ? parseInt(r, 10) : 0;
+                    
+                    if (weight > 0 && reps > 0) {
+                        const setData = { weight, reps };
+                        
+                        if (isDropSet && dropLevel > 0) {
+                            // This is a drop set - find the main set it belongs to
+                            let mainSetRow = null;
+                            let mainSetNumber = null;
+                            
+                            // Look backwards to find the main set this drop set belongs to
+                            let currentRow = row.previousElementSibling;
+                            while (currentRow && currentRow.classList.contains('drop-set-row')) {
+                                currentRow = currentRow.previousElementSibling;
+                            }
+                            
+                            if (currentRow && !currentRow.classList.contains('drop-set-row')) {
+                                mainSetRow = currentRow;
+                                // Calculate main set number by counting main sets before this one
+                                const allMainSets = Array.from(card.querySelectorAll('.set-row:not(.drop-set-row)'));
+                                mainSetNumber = allMainSets.indexOf(mainSetRow) + 1;
+                            }
+                            
+                            if (mainSetRow && mainSetRow.getAttribute('data-group-id')) {
+                                setData.groupId = mainSetRow.getAttribute('data-group-id');
+                                setData.setNumber = mainSetNumber;
+                            } else {
+                                setData.groupId = generateUUID(); // Fallback if no main set group
+                                setData.setNumber = mainSetNumber || 1;
+                            }
+                            setData.groupType = 'DROP_SET';
+                            setData.groupOrder = dropLevel;
+                            
+                        } else {
+                            mainSetIndex++;
+                            // This is a main set
+                            if (row.getAttribute('data-has-drops') === 'true') {
+                                const groupId = row.getAttribute('data-group-id') || generateUUID();
+                                setData.groupId = groupId;
+                                setData.groupType = 'DROP_SET';
+                                setData.groupOrder = 0; // Main set has groupOrder 0
+                                setData.setNumber = mainSetIndex;
+                                row.setAttribute('data-group-id', groupId);
+                            } else {
+                                setData.setNumber = mainSetIndex;
+                            }
+                        }
+                        
+                        sets.push(setData);
+                    }
+                });
+                
+                if (exerciseId && sets.length > 0) {
+                    payload.exercises.push({ exerciseId, sets });
+                }
+            }
+        });
+
+        if (payload.exercises.length === 0) {
+            alert('Please log at least one set before finishing the workout');
+            return;
+        }
+
+        
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+
+        fetch('/workouts/finish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+            body: JSON.stringify(payload)
+        })
+            .then(r => { 
+                if (r.ok) {
+                    // Clear draft on success
+                    try { if (draftKey) localStorage.removeItem(draftKey); } catch(_) {}
+                    window.location.href = '/workouts'; 
+                } else {
+                    r.text().then(() => {
+                        alert('Error finishing workout: ' + r.status + ' ' + r.statusText); 
+                    });
+                }
+            })
+            .catch(err => { 
+                alert('Error finishing workout: ' + err.message); 
+            });
+    }
+
+    // ---------- superset functions ----------
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    function getSelectedCards() {
+        return Array.from(document.querySelectorAll('.exercise-card'))
+            .filter(card => card.querySelector('.exercise-select')?.checked);
+    }
+
+    function createSuperset() {
+        const selected = getSelectedCards();
+        if (selected.length !== 2) {
+            alert('Please select exactly 2 exercises to create a superset');
+            return;
+        }
+        
+        const [card1, card2] = selected;
+        
+        // Count sets in each exercise (excluding drop sets)
+        const sets1 = card1.querySelectorAll('.set-row:not(.drop-set-row)').length;
+        const sets2 = card2.querySelectorAll('.set-row:not(.drop-set-row)').length;
+        
+        // Validate that both exercises have the same number of sets
+        if (sets1 !== sets2) {
+            alert('Both exercises must have the same number of sets to create a superset. Please match the sets of both exercises before creating a superset.');
+            return;
+        }
+        
+        if (sets1 === 0) {
+            alert('Please add at least one set to each exercise before creating a superset.');
+            return;
+        }
+        
+        const ex1Id = card1.getAttribute('data-exercise-id');
+        const ex2Id = card2.getAttribute('data-exercise-id');
+        const ex1Name = card1.querySelector('.exercise-name').textContent.trim();
+        const ex2Name = card2.querySelector('.exercise-name').textContent.trim();
+        const ex1Muscle = card1.querySelector('.exercise-muscle').textContent;
+        const ex2Muscle = card2.querySelector('.exercise-muscle').textContent;
+        
+        // Collect set data from both exercises
+        const ex1SetData = [];
+        const ex2SetData = [];
+        
+        card1.querySelectorAll('.set-row:not(.drop-set-row)').forEach(row => {
+            const inputs = row.querySelectorAll('input[placeholder]');
+            ex1SetData.push({
+                weight: inputs[0]?.value || '',
+                reps: inputs[1]?.value || ''
+            });
+        });
+        
+        card2.querySelectorAll('.set-row:not(.drop-set-row)').forEach(row => {
+            const inputs = row.querySelectorAll('input[placeholder]');
+            ex2SetData.push({
+                weight: inputs[0]?.value || '',
+                reps: inputs[1]?.value || ''
+            });
+        });
+        
+        // Create merged superset card
+        const exercisesList = document.getElementById('exercisesList');
+        const supersetCard = document.createElement('div');
+        supersetCard.className = 'exercise-card superset-card';
+        supersetCard.id = `exercise-${exerciseCounter}`;
+        supersetCard.setAttribute('data-is-superset', 'true');
+        supersetCard.setAttribute('data-exercise-id-1', ex1Id);
+        supersetCard.setAttribute('data-exercise-id-2', ex2Id);
+        
+        const groupId = generateUUID();
+        
+        supersetCard.innerHTML = `
+      <div class="exercise-header">
+        <div class="exercise-info">
+          <h3 class="exercise-name">
+            <span class="superset-badge">SUPERSET</span>
+            ${ex1Name} + ${ex2Name}
+          </h3>
+          <span class="exercise-muscle">${ex1Muscle} / ${ex2Muscle}</span>
+        </div>
+        <div class="exercise-actions">
+          <button class="btn-icon btn-revert" onclick="revertSuperset(${exerciseCounter}, '${ex1Id}', '${ex1Name}', '${ex1Muscle}', '${ex2Id}', '${ex2Name}', '${ex2Muscle}')" title="Revert to separate exercises">
+            <i class="fas fa-undo"></i>
+          </button>
+          <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div class="sets-container">
+        <div class="sets-header">
+          <span>Sets</span>
+          <button class="btn btn-sm btn-outline" onclick="addSupersetSet(${exerciseCounter})">
+            <i class="fas fa-plus"></i> Add Set
+          </button>
+        </div>
+        <div class="sets-list" id="sets-${exerciseCounter}"></div>
+      </div>
+    `;
+        
+        // Insert before the first selected card
+        card1.before(supersetCard);
+        
+        // Remove the original cards
+        card1.remove();
+        card2.remove();
+        
+        // Add superset sets with preserved data
+        const currentExerciseIndex = exerciseCounter;
+        for (let i = 0; i < ex1SetData.length; i++) {
+            addSupersetSetWithData(currentExerciseIndex, ex1SetData[i], ex2SetData[i]);
+        }
+        
+        exerciseCounter++;
+    }
+    
+    function addSupersetSetWithData(exerciseIndex, ex1Data, ex2Data) {
+        const setsList = document.getElementById(`sets-${exerciseIndex}`);
+        const setNumber = setsList.children.length + 1;
+        const card = document.getElementById(`exercise-${exerciseIndex}`);
+        const ex1Name = card.querySelector('.exercise-name').textContent.split('+')[0].replace('SUPERSET', '').trim();
+        const ex2Name = card.querySelector('.exercise-name').textContent.split('+')[1].trim();
+        
+        const row = document.createElement('div');
+        row.className = 'set-row superset-set-row';
+        row.innerHTML = `
+        <div class="set-number">${setNumber}</div>
+        <div class="set-inputs">
+          <div class="exercise-input-group">
+            <span class="exercise-label">${ex1Name}</span>
+            <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" data-exercise="1" value="${ex1Data.weight}">
+            <span class="input-label">kg</span>
+            <input type="number" class="form-input" placeholder="Reps" min="1" data-exercise="1" value="${ex1Data.reps}">
+            <span class="input-label">reps</span>
+          </div>
+          <div class="superset-divider">+</div>
+          <div class="exercise-input-group">
+            <span class="exercise-label">${ex2Name}</span>
+            <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" data-exercise="2" value="${ex2Data.weight}">
+            <span class="input-label">kg</span>
+            <input type="number" class="form-input" placeholder="Reps" min="1" data-exercise="2" value="${ex2Data.reps}">
+            <span class="input-label">reps</span>
+          </div>
+        </div>
+        <div class="set-actions">
+          <button class="btn-icon btn-remove" onclick="removeSet(this)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+    `;
+        setsList.appendChild(row);
+    }
+    
+    function addSupersetSet(exerciseIndex) {
+        const setsList = document.getElementById(`sets-${exerciseIndex}`);
+        const setNumber = setsList.children.length + 1;
+        const card = document.getElementById(`exercise-${exerciseIndex}`);
+        const ex1Name = card.querySelector('.exercise-name').textContent.split('+')[0].replace('SUPERSET', '').trim();
+        const ex2Name = card.querySelector('.exercise-name').textContent.split('+')[1].trim();
+        
+        const row = document.createElement('div');
+        row.className = 'set-row superset-set-row';
+        row.innerHTML = `
+        <div class="set-number">${setNumber}</div>
+        <div class="set-inputs">
+          <div class="exercise-input-group">
+            <span class="exercise-label">${ex1Name}</span>
+            <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" data-exercise="1">
+            <span class="input-label">kg</span>
+            <input type="number" class="form-input" placeholder="Reps" min="1" data-exercise="1">
+            <span class="input-label">reps</span>
+          </div>
+          <div class="superset-divider">+</div>
+          <div class="exercise-input-group">
+            <span class="exercise-label">${ex2Name}</span>
+            <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" data-exercise="2">
+            <span class="input-label">kg</span>
+            <input type="number" class="form-input" placeholder="Reps" min="1" data-exercise="2">
+            <span class="input-label">reps</span>
+          </div>
+        </div>
+        <div class="set-actions">
+          <button class="btn-icon btn-remove" onclick="removeSet(this)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+    `;
+        setsList.appendChild(row);
+    }
+    
+    function revertSuperset(exerciseIndex, ex1Id, ex1Name, ex1Muscle, ex2Id, ex2Name, ex2Muscle) {
+        const supersetCard = document.getElementById(`exercise-${exerciseIndex}`);
+        const exercisesList = document.getElementById('exercisesList');
+        
+        // Collect set data from the superset
+        const ex1SetData = [];
+        const ex2SetData = [];
+        
+        supersetCard.querySelectorAll('.superset-set-row').forEach(row => {
+            const inputs = row.querySelectorAll('input[placeholder]');
+            ex1SetData.push({
+                weight: inputs[0]?.value || '',
+                reps: inputs[1]?.value || ''
+            });
+            ex2SetData.push({
+                weight: inputs[2]?.value || '',
+                reps: inputs[3]?.value || ''
+            });
+        });
+        
+        // Create two separate exercise cards with preserved data
+        const card1 = createExerciseCardWithData(ex1Id, ex1Name, ex1Muscle, ex1SetData);
+        const card2 = createExerciseCardWithData(ex2Id, ex2Name, ex2Muscle, ex2SetData);
+        
+        // Insert the new cards where the superset was
+        supersetCard.before(card1);
+        card1.after(card2);
+        
+        // Remove the superset card
+        supersetCard.remove();
+    }
+    
+    function createExerciseCard(exerciseId, exerciseName, exerciseMuscle) {
+        const card = document.createElement('div');
+        card.className = 'exercise-card';
+        card.id = `exercise-${exerciseCounter}`;
+        card.setAttribute('data-exercise-id', exerciseId);
+        
+        card.innerHTML = `
+      <div class="exercise-header">
+        <div class="exercise-info">
+          <h3 class="exercise-name">${exerciseName}</h3>
+          <span class="exercise-muscle">${exerciseMuscle}</span>
+        </div>
+        <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+      <div class="sets-container">
+        <div class="sets-header">
+          <span>Sets</span>
+          <button class="btn btn-sm btn-outline" onclick="addSet(${exerciseCounter})">
+            <i class="fas fa-plus"></i> Add Set
+          </button>
+        </div>
+        <div class="sets-list" id="sets-${exerciseCounter}"></div>
+      </div>
+    `;
+        
+        exerciseCounter++;
+        return card;
+    }
+    
+    function createExerciseCardWithData(exerciseId, exerciseName, exerciseMuscle, setData) {
+        const card = document.createElement('div');
+        card.className = 'exercise-card';
+        const currentIndex = exerciseCounter;
+        card.id = `exercise-${currentIndex}`;
+        card.setAttribute('data-exercise-id', exerciseId);
+        
+        card.innerHTML = `
+      <div class="exercise-header">
+        <input type="checkbox" class="exercise-select" title="Select for superset">
+        <div class="exercise-info">
+          <h3 class="exercise-name">${exerciseName}</h3>
+          <span class="exercise-muscle">${exerciseMuscle}</span>
+        </div>
+        <button class="btn-icon btn-remove" onclick="removeExercise(${currentIndex})">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+      <div class="sets-container">
+        <div class="sets-header">
+          <span>Sets</span>
+          <button class="btn btn-sm btn-outline" onclick="addSet(${currentIndex})">
+            <i class="fas fa-plus"></i> Add Set
+          </button>
+        </div>
+        <div class="sets-list" id="sets-${currentIndex}"></div>
+      </div>
+    `;
+        
+        exerciseCounter++;
+        
+        // Add sets with preserved data
+        const setsList = card.querySelector('.sets-list');
+        setData.forEach((data, index) => {
+            const setNumber = index + 1;
+            const row = document.createElement('div');
+            row.className = 'set-row';
+            row.innerHTML = `
+        <div class="set-number">${setNumber}</div>
+        <div class="set-inputs">
+          <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" value="${data.weight}">
+          <span class="input-label">kg</span>
+          <input type="number" class="form-input" placeholder="Reps" min="1" value="${data.reps}">
+          <span class="input-label">reps</span>
+        </div>
+        <div class="set-actions">
+          <button class="btn-icon btn-drop" onclick="addDropSet(this)" title="Add drop set"><i class="fas fa-layer-group"></i></button>
+          <button class="btn-icon btn-remove" onclick="removeSet(this)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+            setsList.appendChild(row);
+        });
+        
+        return card;
+    }
+
+    // ---------- init ----------
+    function loadTemplateExercises(templateExercises) {
+        // Sort by position first to maintain order
+        const sortedExercises = [...templateExercises].sort((a, b) => {
+            // Use position field if available, otherwise maintain original order
+            const posA = a.position !== undefined ? a.position : 0;
+            const posB = b.position !== undefined ? b.position : 0;
+            return posA - posB;
+        });
+        
+        // Group exercises by groupId and type
+        const supersetGroups = new Map();
+        const dropSetGroups = new Map();
+        const processed = new Set();
+        
+        // First pass: identify all groups
+        for (const ex of sortedExercises) {
+            if (ex.groupId && ex.groupType === 'SUPERSET') {
+                if (!supersetGroups.has(ex.groupId)) {
+                    supersetGroups.set(ex.groupId, []);
+                }
+                supersetGroups.get(ex.groupId).push(ex);
+            } else if (ex.groupId && ex.groupType === 'DROP_SET') {
+                if (!dropSetGroups.has(ex.groupId)) {
+                    dropSetGroups.set(ex.groupId, []);
+                }
+                dropSetGroups.get(ex.groupId).push(ex);
+            }
+        }
+        
+        // Second pass: process in order
+        for (let i = 0; i < sortedExercises.length; i++) {
+            if (processed.has(i)) continue;
+            const ex = sortedExercises[i];
+            
+            // Check if this is part of a superset
+            if (ex.groupId && ex.groupType === 'SUPERSET') {
+                const group = supersetGroups.get(ex.groupId);
+                if (group && group.length === 2) {
+                    group.sort((a, b) => (a.groupOrder || 0) - (b.groupOrder || 0));
+                    const [ex1, ex2] = group;
+                
+                    // Create superset card directly
+                    const exercisesList = document.getElementById('exercisesList');
+                    const emptyState = document.getElementById('emptyWorkout');
+                    if (emptyState) emptyState.style.display = 'none';
+                    
+                    const supersetCard = document.createElement('div');
+                    supersetCard.className = 'exercise-card superset-card';
+                    supersetCard.id = `exercise-${exerciseCounter}`;
+                    supersetCard.setAttribute('data-is-superset', 'true');
+                    supersetCard.setAttribute('data-exercise-id-1', ex1.id);
+                    supersetCard.setAttribute('data-exercise-id-2', ex2.id);
+                    
+                    supersetCard.innerHTML = `
+              <div class="exercise-header">
+                <div class="exercise-info">
+                  <h3 class="exercise-name">
+                    <span class="superset-badge">SUPERSET</span>
+                    ${ex1.name} + ${ex2.name}
+                  </h3>
+                  <span class="exercise-muscle">${ex1.muscleGroup} / ${ex2.muscleGroup}</span>
+                </div>
+                <div class="exercise-actions">
+                  <button class="btn-icon btn-revert" onclick="revertSuperset(${exerciseCounter}, '${ex1.id}', '${ex1.name}', '${ex1.muscleGroup}', '${ex2.id}', '${ex2.name}', '${ex2.muscleGroup}')" title="Revert to separate exercises">
+                    <i class="fas fa-undo"></i>
+                  </button>
+                  <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="sets-container">
+                <div class="sets-header">
+                  <span>Sets</span>
+                  <button class="btn btn-sm btn-outline" onclick="addSupersetSet(${exerciseCounter})">
+                    <i class="fas fa-plus"></i> Add Set
+                  </button>
+                </div>
+                <div class="sets-list" id="sets-${exerciseCounter}"></div>
+              </div>
+            `;
+                    
+                    exercisesList.appendChild(supersetCard);
+                    
+                    // Add the target number of sets
+                    const targetSets = ex1.targetSets || 3;
+                    for (let i = 0; i < targetSets; i++) {
+                        addSupersetSet(exerciseCounter);
+                    }
+                    
+                    // Mark both template items as processed by finding their indices
+                    for (let j = 0; j < sortedExercises.length; j++) {
+                        const item = sortedExercises[j];
+                        if (item.groupId === ex.groupId && item.groupType === 'SUPERSET') {
+                            processed.add(j);
+                        }
+                    }
+                    exerciseCounter++;
+                }
+            } 
+            // Check if this is the main exercise in a drop set group
+            else if (ex.groupId && ex.groupType === 'DROP_SET') {
+                const group = dropSetGroups.get(ex.groupId);
+                if (group && group.length > 0) {
+                    // Sort by groupOrder (0 = main, 1+ = drops)
+                    group.sort((a, b) => (a.groupOrder || 0) - (b.groupOrder || 0));
+                    
+                    // Only process if this is the main exercise (groupOrder = 0)
+                    if (ex.groupOrder === 0) {
+                        // Add main exercise with drop sets from template
+                        const exercisesList = document.getElementById('exercisesList');
+                        const emptyState = document.getElementById('emptyWorkout');
+                        if (emptyState) emptyState.style.display = 'none';
+                        
+                        const card = document.createElement('div');
+                        card.className = 'exercise-card';
+                        card.id = `exercise-${exerciseCounter}`;
+                        card.setAttribute('data-exercise-id', ex.id);
+                        card.innerHTML = `
+                  <div class="exercise-header">
+                    <input type="checkbox" class="exercise-select" title="Select for superset">
+                    <div class="exercise-info">
+                      <h3 class="exercise-name">${ex.name}</h3>
+                      <span class="exercise-muscle">${ex.muscleGroup}</span>
+                    </div>
+                    <div class="exercise-actions">
+                      <button class="btn-icon btn-drop" onclick="addDropSet(this)" title="Add drop set">
+                        <i class="fas fa-layer-group"></i>
+                      </button>
+                      <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="sets-container">
+                    <div class="sets-header">
+                      <span>Sets</span>
+                      <button class="btn btn-sm btn-outline" onclick="addSet(${exerciseCounter})">
+                        <i class="fas fa-plus"></i> Add Set
+                      </button>
+                    </div>
+                    <div class="sets-list" id="sets-${exerciseCounter}"></div>
+                  </div>
+                `;
+                        
+                        exercisesList.appendChild(card);
+                        
+                        // Add the target number of sets for the main exercise
+                        const targetSets = ex.targetSets || 3;
+                        for (let i = 0; i < targetSets; i++) {
+                            addSet(exerciseCounter);
+                        }
+                        
+                        // Add drop sets from template (groupOrder > 0)
+                        const dropSets = group.filter(item => item.groupOrder > 0);
+                        const setsList = card.querySelector('.sets-list');
+                        const allSetRows = setsList.querySelectorAll('.set-row:not(.drop-set-row)');
+                        
+                        if (dropSets.length > 0) {
+                            // Group drop sets by set number
+                            const dropSetsBySetNumber = new Map();
+                            dropSets.forEach(dropSet => {
+                                const setNumber = dropSet.setNumber || ex.targetSets; // fallback to last set
+                                if (!dropSetsBySetNumber.has(setNumber)) {
+                                    dropSetsBySetNumber.set(setNumber, []);
+                                }
+                                dropSetsBySetNumber.get(setNumber).push(dropSet);
+                            });
+                            
+                            // Add drop sets to their respective main sets
+                            dropSetsBySetNumber.forEach((sets, setNumber) => {
+                                const targetSetRow = allSetRows[setNumber - 1]; // setNumber is 1-based
+                                if (targetSetRow) {
+                                    // Mark the main set as having drops
+                                    targetSetRow.setAttribute('data-has-drops', 'true');
+                                    const groupId = ex.groupId || generateUUID();
+                                    targetSetRow.setAttribute('data-group-id', groupId);
+                                    
+                                    // Add drop sets after this main set
+                                    sets.forEach((dropSet, index) => {
+                                        const dropLevel = dropSet.groupOrder || (index + 1);
+                                        const dropRow = document.createElement('div');
+                                        dropRow.className = 'set-row drop-set-row';
+                                        dropRow.setAttribute('data-drop-level', dropLevel);
+                                        dropRow.style.marginLeft = (dropLevel * 20) + 'px';
+                                        
+                                        dropRow.innerHTML = `
+                                  <div class="set-number"><span class="drop-badge">Drop ${dropLevel}</span></div>
+                                  <div class="set-inputs">
+                                    <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5">
+                                    <span class="input-label">kg</span>
+                                    <input type="number" class="form-input" placeholder="Reps" min="1">
+                                    <span class="input-label">reps</span>
+                                  </div>
+                                  <div class="set-actions">
+                                    <button class="btn-icon btn-drop" onclick="addDropSet(this)" title="Add another drop">
+                                      <i class="fas fa-layer-group"></i>
+                                    </button>
+                                    <button class="btn-icon btn-remove" onclick="removeSet(this)">
+                                      <i class="fas fa-trash"></i>
+                                    </button>
+                                  </div>
+                                `;
+                                        
+                                        // Find where to insert (after the target main set and any existing drops for that set)
+                                        let insertAfter = targetSetRow;
+                                        let nextSibling = targetSetRow.nextElementSibling;
+                                        while (nextSibling && nextSibling.classList.contains('drop-set-row')) {
+                                            insertAfter = nextSibling;
+                                            nextSibling = nextSibling.nextElementSibling;
+                                        }
+                                        insertAfter.insertAdjacentElement('afterend', dropRow);
+                                    });
+                                }
+                            });
+                        }
+                        
+                        // Mark all items in this drop set group as processed
+                        for (let j = 0; j < sortedExercises.length; j++) {
+                            const item = sortedExercises[j];
+                            if (item.groupId === ex.groupId && item.groupType === 'DROP_SET') {
+                                processed.add(j);
+                            }
+                        }
+                        
+                        exerciseCounter++;
+                    }
+                }
+            }
+            // Regular standalone exercise
+            else if (!ex.groupId) {
+                addExerciseCard(ex);
+                processed.add(i);
+            }
+        }
+    }
+    
+    function loadExistingSets() {
+        if (!existingSets || existingSets.length === 0) return;
+        
+        // Group sets by exercise and grouping info
+        const byExercise = new Map();
+        const supersetGroups = new Map();
+        
+        for (const set of existingSets) {
+            const exId = set.exerciseId;
+            
+            // Handle supersets
+            if (set.groupId && set.groupType === 'SUPERSET') {
+                if (!supersetGroups.has(set.groupId)) {
+                    supersetGroups.set(set.groupId, {
+                        exercises: new Map(),
+                        groupId: set.groupId
+                    });
+                }
+                const group = supersetGroups.get(set.groupId);
+                if (!group.exercises.has(exId)) {
+                    group.exercises.set(exId, { exerciseId: exId, groupOrder: set.groupOrder, sets: [] });
+                }
+                group.exercises.get(exId).sets.push(set);
+            } else {
+                // Regular exercise or drop set
+                if (!byExercise.has(exId)) {
+                    byExercise.set(exId, []);
+                }
+                byExercise.get(exId).push(set);
+            }
+        }
+        
+        // Load supersets first
+        for (const [groupId, group] of supersetGroups.entries()) {
+            const exArray = Array.from(group.exercises.values()).sort((a, b) => (a.groupOrder || 0) - (b.groupOrder || 0));
+            if (exArray.length === 2) {
+                const [ex1Data, ex2Data] = exArray;
+                const ex1 = exercises.find(e => String(e.id) === String(ex1Data.exerciseId));
+                const ex2 = exercises.find(e => String(e.id) === String(ex2Data.exerciseId));
+                
+                if (ex1 && ex2) {
+                    // Create superset card
+                    const exercisesList = document.getElementById('exercisesList');
+                    const emptyState = document.getElementById('emptyWorkout');
+                    if (emptyState) emptyState.style.display = 'none';
+                    
+                    const supersetCard = document.createElement('div');
+                    supersetCard.className = 'exercise-card superset-card';
+                    supersetCard.id = `exercise-${exerciseCounter}`;
+                    supersetCard.setAttribute('data-is-superset', 'true');
+                    supersetCard.setAttribute('data-exercise-id-1', ex1.id);
+                    supersetCard.setAttribute('data-exercise-id-2', ex2.id);
+                    
+                    supersetCard.innerHTML = `
+                        <div class="exercise-header">
+                            <div class="exercise-info">
+                                <h3 class="exercise-name">
+                                    <span class="superset-badge">SUPERSET</span>
+                                    ${ex1.name} + ${ex2.name}
+                                </h3>
+                                <span class="exercise-muscle">${ex1.muscleGroup} / ${ex2.muscleGroup}</span>
+                            </div>
+                            <div class="exercise-actions">
+                                <button class="btn-icon btn-revert" onclick="revertSuperset(${exerciseCounter}, '${ex1.id}', '${ex1.name}', '${ex1.muscleGroup}', '${ex2.id}', '${ex2.name}', '${ex2.muscleGroup}')" title="Revert to separate exercises">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="sets-container">
+                            <div class="sets-header">
+                                <span>Sets</span>
+                                <button class="btn btn-sm btn-outline" onclick="addSupersetSet(${exerciseCounter})">
+                                    <i class="fas fa-plus"></i> Add Set
+                                </button>
+                            </div>
+                            <div class="sets-list" id="sets-${exerciseCounter}"></div>
+                        </div>
+                    `;
+                    
+                    exercisesList.appendChild(supersetCard);
+                    
+                    // Add existing sets with data
+                    const setsList = supersetCard.querySelector('.sets-list');
+                    const numSets = Math.max(ex1Data.sets.length, ex2Data.sets.length);
+                    for (let i = 0; i < numSets; i++) {
+                        const set1 = ex1Data.sets[i];
+                        const set2 = ex2Data.sets[i];
+                        
+                        const setNumber = i + 1;
+                        const row = document.createElement('div');
+                        row.className = 'superset-set-container';
+                        row.innerHTML = `
+                            <div class="set-number">${setNumber}</div>
+                            <div class="superset-set-group">
+                                <div class="exercise-label">${ex1.name}</div>
+                                <div class="set-inputs">
+                                    <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" value="${set1 ? set1.weight || '' : ''}">
+                                    <span class="input-label">kg</span>
+                                    <input type="number" class="form-input" placeholder="Reps" min="1" value="${set1 ? set1.reps || '' : ''}">
+                                    <span class="input-label">reps</span>
+                                </div>
+                            </div>
+                            <div class="superset-divider"></div>
+                            <div class="superset-set-group">
+                                <div class="exercise-label">${ex2.name}</div>
+                                <div class="set-inputs">
+                                    <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" value="${set2 ? set2.weight || '' : ''}">
+                                    <span class="input-label">kg</span>
+                                    <input type="number" class="form-input" placeholder="Reps" min="1" value="${set2 ? set2.reps || '' : ''}">
+                                    <span class="input-label">reps</span>
+                                </div>
+                            </div>
+                            <div class="set-actions">
+                                <button class="btn-icon btn-remove" onclick="removeSet(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        setsList.appendChild(row);
+                    }
+                    
+                    exerciseCounter++;
+                }
+            }
+        }
+        
+        // Load regular exercises
+        for (const [exId, sets] of byExercise.entries()) {
+            const ex = exercises.find(e => String(e.id) === String(exId));
+            if (!ex) continue;
+            
+            // Create exercise card
+            const exercisesList = document.getElementById('exercisesList');
+            const emptyState = document.getElementById('emptyWorkout');
+            if (emptyState) emptyState.style.display = 'none';
+            
+            const exerciseCard = document.createElement('div');
+            exerciseCard.className = 'exercise-card';
+            exerciseCard.id = `exercise-${exerciseCounter}`;
+            exerciseCard.setAttribute('data-exercise-id', ex.id);
+            
+            exerciseCard.innerHTML = `
+                <div class="exercise-header">
+                    <div class="exercise-select-container">
+                        <input type="checkbox" class="exercise-select" onchange="updateSupersetButton()">
+                    </div>
+                    <div class="exercise-info">
+                        <h3 class="exercise-name">${ex.name}</h3>
+                        <span class="exercise-muscle">${ex.muscleGroup}</span>
+                    </div>
+                    <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="sets-container">
+                    <div class="sets-header">
+                        <span>Sets</span>
+                        <button class="btn btn-sm btn-outline" onclick="addSet(${exerciseCounter})">
+                            <i class="fas fa-plus"></i> Add Set
+                        </button>
+                    </div>
+                    <div class="sets-list" id="sets-${exerciseCounter}"></div>
+                </div>
+            `;
+            
+            exercisesList.appendChild(exerciseCard);
+            
+            // Add existing sets with data
+            const setsList = exerciseCard.querySelector('.sets-list');
+            
+            // Group sets by groupId for drop sets
+            const dropSetGroups = new Map();
+            
+            for (const set of sets) {
+                if (set.groupId && set.groupType === 'DROP_SET') {
+                    if (!dropSetGroups.has(set.groupId)) {
+                        dropSetGroups.set(set.groupId, []);
+                    }
+                    dropSetGroups.get(set.groupId).push(set);
+                }
+            }
+            
+            // Process all sets in order
+            for (const set of sets) {
+                // Skip if this is a drop set (groupOrder > 0) - it will be added after its main set
+                if (set.groupId && set.groupType === 'DROP_SET' && set.groupOrder > 0) {
+                    continue;
+                }
+                
+                const setNumber = setsList.children.length + 1;
+                const isMainSetWithDrops = set.groupId && set.groupType === 'DROP_SET' && set.groupOrder === 0;
+                
+                const row = document.createElement('div');
+                row.className = 'set-row';
+                row.setAttribute('data-drop-level', '0');
+                if (isMainSetWithDrops) {
+                    row.setAttribute('data-group-id', set.groupId);
+                    row.setAttribute('data-has-drops', 'true');
+                }
+                
+                row.innerHTML = `
+                    <div class="set-number">${setNumber}</div>
+                    <div class="set-inputs">
+                        <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" value="${set.weight || ''}">
+                        <span class="input-label">kg</span>
+                        <input type="number" class="form-input" placeholder="Reps" min="1" value="${set.reps || ''}">
+                        <span class="input-label">reps</span>
+                    </div>
+                    <div class="set-actions">
+                        <button class="btn-icon btn-drop" onclick="addDropSet(this)" title="Add drop set"><i class="fas fa-layer-group"></i></button>
+                        <button class="btn-icon btn-remove" onclick="removeSet(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                setsList.appendChild(row);
+                
+                // Add drop sets for this main set
+                if (isMainSetWithDrops && dropSetGroups.has(set.groupId)) {
+                    const drops = dropSetGroups.get(set.groupId)
+                        .filter(d => d.groupOrder > 0)
+                        .sort((a, b) => a.groupOrder - b.groupOrder);
+                    
+                    for (const dropSet of drops) {
+                        const dropLevel = dropSet.groupOrder;
+                        const dropRow = document.createElement('div');
+                        dropRow.className = 'set-row drop-set-row';
+                        dropRow.setAttribute('data-drop-level', dropLevel);
+                        dropRow.style.marginLeft = (dropLevel * 20) + 'px';
+                        
+                        dropRow.innerHTML = `
+                            <div class="set-number"><span class="drop-badge">Drop ${dropLevel}</span></div>
+                            <div class="set-inputs">
+                                <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" value="${dropSet.weight || ''}">
+                                <span class="input-label">kg</span>
+                                <input type="number" class="form-input" placeholder="Reps" min="1" value="${dropSet.reps || ''}">
+                                <span class="input-label">reps</span>
+                            </div>
+                            <div class="set-actions">
+                                <button class="btn-icon btn-drop" onclick="addDropSet(this)" title="Add another drop"><i class="fas fa-layer-group"></i></button>
+                                <button class="btn-icon btn-remove" onclick="removeSet(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        setsList.appendChild(dropRow);
+                    }
+                }
+            }
+            
+            exerciseCounter++;
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        populateExerciseSelect();
+        attachAutosaveHandlers();
+
+        // If continuing and we have persisted sets, load them
+        if (existingSets && existingSets.length > 0) {
+            loadExistingSets();
+            return; // template/draft not needed
+        }
+
+        // If starting from a template, preload; otherwise try draft
+        const templateId = new URLSearchParams(location.search).get('templateId');
+        if (templateId) {
+            fetch(`/workouts/templates/${templateId}/exercises`)
+                .then(r => r.json())
+                .then(list => loadTemplateExercises(list))
+                .catch(err => console.error('Template preload failed:', err));
+        } else {
+            // No template and no existing sets → restore local draft if present
+            setTimeout(loadDraftIfAny, 0);
+        }
+    });
+
+    // ---- timer ----
+    (function initTimer(){
+        const el = document.getElementById('timerText');
+        if (!el) return;
+        const start = startedAtIso ? new Date(startedAtIso) : new Date();
+        function tick(){
+            const diffMs = Date.now() - start.getTime();
+            const sec = Math.floor(diffMs/1000);
+            const h = String(Math.floor(sec/3600)).padStart(2,'0');
+            const m = String(Math.floor((sec%3600)/60)).padStart(2,'0');
+            const s = String(sec%60).padStart(2,'0');
+            el.textContent = `${h}:${m}:${s}`;
+        }
+        tick();
+        setInterval(tick, 1000);
+    })();
+
+    // ---- autosave (localStorage) ----
+    let autosaveTimer = null;
+    function attachAutosaveHandlers(){
+        document.addEventListener('input', function(e){
+            if (!draftKey) return;
+            if (!e.target.closest('.workout-session')) return;
+            if (autosaveTimer) clearTimeout(autosaveTimer);
+            autosaveTimer = setTimeout(saveDraft, 400);
+        });
+    }
+
+    function saveDraft(){
+        if (!draftKey) return;
+        const cards = Array.from(document.querySelectorAll('.exercise-card'));
+        const draft = [];
+        cards.forEach(card => {
+            const isSuperset = card.getAttribute('data-is-superset') === 'true';
+            if (isSuperset) {
+                const ex1Id = card.getAttribute('data-exercise-id-1');
+                const ex2Id = card.getAttribute('data-exercise-id-2');
+                const rows = Array.from(card.querySelectorAll('.superset-set-row, .superset-set-container'));
+                const sets = rows.map(row => {
+                    const inputs = row.querySelectorAll('input');
+                    return {
+                        type: 'SUPERSET',
+                        ex1: { weight: inputs[0]?.value || '', reps: inputs[1]?.value || '' },
+                        ex2: { weight: inputs[2]?.value || '', reps: inputs[3]?.value || '' }
+                    };
+                });
+                draft.push({ kind:'SUPERSET', ex1Id, ex2Id, sets });
+            } else {
+                const exerciseId = card.getAttribute('data-exercise-id');
+                const rows = Array.from(card.querySelectorAll('.set-row'));
+                const sets = rows.map(row => {
+                    const inputs = row.querySelectorAll('input');
+                    const isDrop = row.classList.contains('drop-set-row');
+                    const dropLevel = parseInt(row.getAttribute('data-drop-level')||'0');
+                    return { type: isDrop ? 'DROP' : 'MAIN', level: dropLevel, weight: inputs[0]?.value||'', reps: inputs[1]?.value||'' };
+                });
+                draft.push({ kind:'REGULAR', exerciseId, sets });
+            }
+        });
+        try { localStorage.setItem(draftKey, JSON.stringify(draft)); } catch(_) {}
+    }
+
+    function loadDraftIfAny(){
+        if (!draftKey) return;
+        let raw = null;
+        try { raw = localStorage.getItem(draftKey); } catch(_) {}
+        if (!raw) return;
+        let data = null;
+        try { data = JSON.parse(raw); } catch(_) { return; }
+        if (!Array.isArray(data) || data.length === 0) return;
+
+        const listEl = document.getElementById('exercisesList');
+        const empty = document.getElementById('emptyWorkout');
+        if (empty) empty.style.display = 'none';
+
+        data.forEach(item => {
+            if (item.kind === 'SUPERSET') {
+                // build superset card
+                const ex1 = exercises.find(e => String(e.id)===String(item.ex1Id));
+                const ex2 = exercises.find(e => String(e.id)===String(item.ex2Id));
+                if (!ex1 || !ex2) return;
+                // create empty card via createSuperset logic shortcut
+                const supersetCard = document.createElement('div');
+                supersetCard.className = 'exercise-card superset-card';
+                supersetCard.id = `exercise-${exerciseCounter}`;
+                supersetCard.setAttribute('data-is-superset','true');
+                supersetCard.setAttribute('data-exercise-id-1', ex1.id);
+                supersetCard.setAttribute('data-exercise-id-2', ex2.id);
+                supersetCard.innerHTML = `
+                  <div class="exercise-header">
+                    <div class="exercise-info">
+                      <h3 class="exercise-name"><span class="superset-badge">SUPERSET</span> ${ex1.name} + ${ex2.name}</h3>
+                      <span class="exercise-muscle">${ex1.muscleGroup} / ${ex2.muscleGroup}</span>
+                    </div>
+                    <div class="exercise-actions">
+                      <button class="btn-icon btn-revert" onclick="revertSuperset(${exerciseCounter}, '${ex1.id}', '${ex1.name}', '${ex1.muscleGroup}', '${ex2.id}', '${ex2.name}', '${ex2.muscleGroup}')" title="Revert to separate exercises"><i class="fas fa-undo"></i></button>
+                      <button class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </div>
+                  <div class="sets-container"><div class="sets-header"><span>Sets</span><button class="btn btn-sm btn-outline" onclick="addSupersetSet(${exerciseCounter})"><i class="fas fa-plus"></i> Add Set</button></div><div class="sets-list" id="sets-${exerciseCounter}"></div></div>`;
+                listEl.appendChild(supersetCard);
+                const setsList = supersetCard.querySelector('.sets-list');
+                item.sets.forEach((s, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'set-row superset-set-row';
+                    row.innerHTML = `
+                        <div class="set-number">${idx+1}</div>
+                        <div class="set-inputs">
+                          <div class="exercise-input-group"><span class="exercise-label">${ex1.name}</span>
+                            <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" value="${s.ex1?.weight||''}"><span class="input-label">kg</span>
+                            <input type="number" class="form-input" placeholder="Reps" min="1" value="${s.ex1?.reps||''}"><span class="input-label">reps</span>
+                          </div>
+                          <div class="superset-divider">+</div>
+                          <div class="exercise-input-group"><span class="exercise-label">${ex2.name}</span>
+                            <input type="number" class="form-input" placeholder="Weight" min="0" step="0.5" value="${s.ex2?.weight||''}"><span class="input-label">kg</span>
+                            <input type="number" class="form-input" placeholder="Reps" min="1" value="${s.ex2?.reps||''}"><span class="input-label">reps</span>
+                          </div>
+                        </div>
+                        <div class="set-actions"><button class="btn-icon btn-remove" onclick="removeSet(this)"><i class="fas fa-trash"></i></button></div>`;
+                    setsList.appendChild(row);
+                });
+                exerciseCounter++;
+            } else if (item.kind === 'REGULAR') {
+                const ex = exercises.find(e => String(e.id)===String(item.exerciseId));
+                if (!ex) return;
+                addExerciseCard(ex);
+                const idx = exerciseCounter-1;
+                const setsList = document.getElementById(`sets-${idx}`);
+                setsList.innerHTML = '';
+                // Rebuild sets with drop structure
+                item.sets.forEach(s => {
+                    if (s.type === 'MAIN') {
+                        addSet(idx);
+                        const last = setsList.lastElementChild;
+                        const inputs = last.querySelectorAll('input');
+                        inputs[0].value = s.weight || '';
+                        inputs[1].value = s.reps || '';
+                    } else {
+                        // add drop after last set or after previous drop
+                        const mainExists = setsList.querySelector('.set-row:not(.drop-set-row):last-child');
+                        if (!mainExists) { addSet(idx); }
+                        const lastMain = setsList.querySelector('.set-row:not(.drop-set-row):last-child');
+                        // simulate drop add and then set values
+                        const dropBtn = lastMain.querySelector('.btn-drop');
+                        if (dropBtn) { addDropSet(dropBtn); }
+                        const lastRow = setsList.lastElementChild;
+                        const inputs = lastRow.querySelectorAll('input');
+                        inputs[0].value = s.weight || '';
+                        inputs[1].value = s.reps || '';
+                    }
+                });
+            }
+        });
+    }
+
+</script>
+
+
+
+</body>
+</html>

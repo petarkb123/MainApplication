@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPower - Exercises</title>
+    <link rel="stylesheet" th:href="@{/css/exercises.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>FitPower</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="/exercises" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Exercises</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/workouts" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            <span>Workouts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/templates" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Templates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/stats/weekly" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none; border:none; width:100%; text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <main class="main-content">
+        
+        <header class="top-header">
+            <div class="header-left">
+                <h1 class="page-title">Exercises</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name" th:text="${username}">User</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        
+        <div class="dashboard-content">
+            
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <i class="fas fa-dumbbell"></i>
+                        Exercise Library
+                    </h1>
+                    <p class="page-subtitle">Browse exercises by muscle group</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Create Custom
+                </button>
+            </div>
+
+
+            
+            <div class="exercise-section" th:if="${not #lists.isEmpty(exercises)}">
+                <h2 class="section-title">My exercises</h2>
+                <div class="exercises-grid">
+                    <div class="exercise-card" th:each="exercise : ${exercises}" th:if="${!exercise.builtIn}">
+                        <div class="exercise-header">
+                            <div class="exercise-icon">
+                                <i class="fas fa-dumbbell"></i>
+                            </div>
+                            <div class="exercise-actions">
+                                
+                                <form th:action="@{|/exercises/${exercise.id}/delete|}" method="post" style="display:inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button class="btn-icon btn-delete" type="submit" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="exercise-content">
+                            <h3 class="exercise-name" th:text="${exercise.name}">Exercise Name</h3>
+                            <div class="exercise-meta">
+                                <span class="muscle-group" th:text="${exercise.primaryMuscle}">Muscle Group</span>
+                                <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            
+            <div class="exercise-section" th:if="${not #lists.isEmpty(exercises)}">
+                <h2 class="section-title">Exercise Library by Muscle Group</h2>
+                <div class="muscle-groups-container">
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('chest')">
+                            <h3 class="muscle-group-title">CHEST</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'CHEST'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="chest-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="chest-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'CHEST']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('back')">
+                            <h3 class="muscle-group-title">BACK</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'BACK'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="back-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="back-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'BACK']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('legs')">
+                            <h3 class="muscle-group-title">LEGS</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'LEGS'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="legs-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="legs-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'LEGS']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('shoulders')">
+                            <h3 class="muscle-group-title">SHOULDERS</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'SHOULDERS'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="shoulders-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="shoulders-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'SHOULDERS']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('biceps')">
+                            <h3 class="muscle-group-title">BICEPS</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'BICEPS'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="biceps-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="biceps-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'BICEPS']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('triceps')">
+                            <h3 class="muscle-group-title">TRICEPS</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'TRICEPS'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="triceps-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="triceps-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'TRICEPS']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('forearms')">
+                            <h3 class="muscle-group-title">FOREARMS</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'FOREARMS'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="forearms-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="forearms-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'FOREARMS']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('hamstrings')">
+                            <h3 class="muscle-group-title">HAMSTRINGS</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'HAMSTRINGS'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="hamstrings-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="hamstrings-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'HAMSTRINGS']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('calves')">
+                            <h3 class="muscle-group-title">CALVES</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'CALVES'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="calves-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="calves-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'CALVES']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="muscle-group-section">
+                        <div class="muscle-group-header" onclick="toggleMuscleGroup('core')">
+                            <h3 class="muscle-group-title">CORE</h3>
+                            <span class="exercise-count"
+                                  th:text="${exercises.?[builtIn and primaryMuscle.name() == 'CORE'].size()} + ' exercises'">0 exercises</span>
+                            <i class="fas fa-chevron-down muscle-group-icon" id="core-icon"></i>
+                        </div>
+                        <div class="muscle-group-content" id="core-content">
+                            <div class="exercises-grid">
+                                <div class="exercise-card builtin-card"
+                                     th:each="exercise : ${exercises.?[builtIn and primaryMuscle.name() == 'CORE']}">
+                                    <div class="exercise-header">
+                                        <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                                        <div class="exercise-badges"><span class="badge badge-builtin">Built-in</span></div>
+                                    </div>
+                                    <div class="exercise-content">
+                                        <h3 class="exercise-name" th:text="${exercise.name}">Exercise</h3>
+                                        <div class="exercise-meta">
+                                            <span class="equipment" th:text="${exercise.equipment}">Equipment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            
+            <div class="empty-state" th:if="${#lists.isEmpty(exercises)}">
+                <div class="empty-icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <h3>No exercises yet</h3>
+                <p>Start building your exercise library by adding your first exercise.</p>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Add Your First Exercise
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="modal" id="addModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New Exercise</h2>
+            <button class="btn-close" onclick="closeAddModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form th:action="@{/exercises}" method="post" id="exerciseCreateForm" class="modal-form">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-dumbbell"></i>
+                    Exercise Name
+                </label>
+                <input type="text" name="name" class="form-input" placeholder="Enter exercise name" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-muscle"></i>
+                    Primary Muscle Group
+                </label>
+                <select name="muscleGroup" class="form-select" required>
+                    <option value="" disabled selected>Select muscle group</option>
+                    <option th:each="m : ${muscles}" th:value="${m}" th:text="${m}"></option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-muscle"></i>
+                    Equipment
+                </label>
+                <select name="equipment" class="form-select" required>
+                    <option value="" disabled selected>Select equipment</option>
+                    <option th:each="m : ${equipments}" th:value="${m}" th:text="${m}"></option>
+                </select>
+            </div>
+
+
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Exercise</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleMuscleGroup(groupName) {
+        const content = document.getElementById(groupName + '-content');
+        const icon = document.getElementById(groupName + '-icon');
+
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            content.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function openAddModal() {
+        document.getElementById('addModal').style.display = 'flex';
+    }
+    function closeAddModal() {
+        document.getElementById('addModal').style.display = 'none';
+    }
+    window.onclick = function (event) {
+        const modal = document.getElementById('addModal');
+        if (event.target === modal) closeAddModal();
+    };
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize all muscle groups as collapsed
+        const muscleGroups = ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'forearms', 'hamstrings', 'calves', 'core'];
+        muscleGroups.forEach(group => {
+            const content = document.getElementById(group + '-content');
+            const icon = document.getElementById(group + '-icon');
+            if (content && icon) {
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Animate exercise cards
+        const cards = document.querySelectorAll('.exercise-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 + (index * 100));
+        });
+    });
+</script>
+</body>
+</html>

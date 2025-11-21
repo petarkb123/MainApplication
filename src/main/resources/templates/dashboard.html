@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>FitPower - Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>FitPower</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item active">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/exercises" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Exercises</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/workouts" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            <span>Workouts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/templates" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Templates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/stats/weekly" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none; border:none; width:100%; text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <main class="main-content">
+        
+        <header class="top-header">
+            <div class="header-left">
+                <h1 class="page-title">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name" th:text="${username}">User</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        
+        <div class="dashboard-content">
+            
+            <div class="welcome-section">
+                <h2 class="welcome-title">Welcome back!</h2>
+                <p class="welcome-subtitle">Ready to continue your fitness journey?</p>
+            </div>
+
+            
+            <div class="quick-actions">
+                <a href="/workouts" class="action-card primary">
+                    <div class="action-icon">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Start Workout</h3>
+                        <p>Begin a new training session</p>
+                    </div>
+                </a>
+                <a href="/exercises" class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Manage Exercises</h3>
+                        <p>Add or edit your exercises</p>
+                    </div>
+                </a>
+                <a href="/templates" class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Workout Templates</h3>
+                        <p>Create workout routines</p>
+                    </div>
+                </a>
+            </div>
+
+            
+            <div class="stats-section">
+                <h3 class="section-title">This Week's Overview</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${#aggregates.sum(summary.days.![sessions])}">0</div>
+                            <div class="stat-label">Total Sessions</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${#aggregates.sum(summary.days.![sets])}">0</div>
+                            <div class="stat-label">Total Sets</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-repeat"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" th:text="${#aggregates.sum(summary.days.![reps])}">0</div>
+                            <div class="stat-label">Total Reps</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <section class="rest-days-section">
+                <div class="section-header">
+                    <h3 class="section-title">Schedule</h3>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-primary" onclick="openScheduleModal()"><i class="fa fa-plus"></i> New</button>
+                    </div>
+                </div>
+                <div class="rest-days-grid single">
+                    <div class="calendar" id="restCalendar"></div>
+                </div>
+            </section>
+
+            
+            <div class="recent-activity" style="margin-top: 18px;">
+                <h3 class="section-title">Recent Activity</h3>
+                <div class="activity-list" th:if="${recentWorkouts != null and !recentWorkouts.isEmpty()}">
+                    <div class="activity-item" th:each="workout : ${recentWorkouts}">
+                        <div class="activity-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>Workout Session</h4>
+                            <p th:text="${#temporals.format(workout.startedAt, 'MMM dd, yyyy - HH:mm')}">Today at 10:30 AM</p>
+                        </div>
+                        <div class="activity-status" th:text="${workout.status}">Completed</div>
+                    </div>
+                </div>
+                <div class="empty-activity" th:if="${recentWorkouts == null or recentWorkouts.isEmpty()}">
+                    <i class="fas fa-dumbbell"></i>
+                    <p>No recent workouts. Start your first workout!</p>
+                    <a href="/workouts" class="btn btn-primary">Start Workout</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="scheduleModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="schTitle">Schedule</h3>
+      <span class="modal-close" onclick="closeScheduleModal()">&times;</span>
+    </div>
+    <form id="scheduleForm" onsubmit="submitSchedule(event)">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="schType" name="type">
+          <option value="REST">Rest Day</option>
+          <option value="WORKOUT">Workout</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="schDate">Date</label>
+        <input type="date" id="schDate" name="date" required>
+      </div>
+      <div id="restFields">
+        <div class="form-group">
+          <label for="schReason">Reason</label>
+          <select id="schReason" name="reason">
+            <option value="PLANNED">Planned</option>
+            <option value="SICK">Sick</option>
+            <option value="TRAVEL">Travel</option>
+            <option value="INJURY">Injury</option>
+            <option value="WORK">Work</option>
+            <option value="FAMILY">Family</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="schNotes">Notes</label>
+          <textarea id="schNotes" name="notes" placeholder="Optional" maxlength="500"></textarea>
+        </div>
+      </div>
+      <div id="workoutFields" style="display:none;">
+        <div class="form-group">
+          <label for="schTemplate">Template</label>
+          <select id="schTemplate" name="templateId">
+            <option value="" disabled selected>Select template</option>
+            <option th:each="t : ${templates}" th:value="${t.id}" th:text="${t.name}"></option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="schWNotes">Notes</label>
+          <textarea id="schWNotes" name="wnotes" placeholder="Optional" maxlength="500"></textarea>
+        </div>
+      </div>
+      <div class="form-error" id="schErr" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeScheduleModal()">Close</button>
+        <button type="button" id="schDeleteBtn" class="btn btn-secondary" style="display:none;" onclick="deleteSchedule()">Delete</button>
+        <button id="schSaveBtn" type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script th:inline="javascript">
+    function getCsrf() {
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        return { header, token };
+    }
+
+    function openScheduleModal(dateIso) {
+        const modal = document.getElementById('scheduleModal');
+        modal.style.display = 'flex';
+        const todayIso = (dateIso || new Date().toISOString().slice(0,10));
+        document.getElementById('schDate').value = todayIso;
+        document.getElementById('schType').value = 'REST';
+        showTypeFields();
+        document.getElementById('schErr').style.display='none';
+        // If something exists on this date, show delete
+        const info = getExistingForDate(todayIso);
+        document.getElementById('schDeleteBtn').style.display = info ? 'inline-block' : 'none';
+    }
+    function closeScheduleModal(){ document.getElementById('scheduleModal').style.display='none'; }
+    function showTypeFields(){
+        const t = document.getElementById('schType').value;
+        document.getElementById('restFields').style.display = t==='REST' ? 'block':'none';
+        document.getElementById('workoutFields').style.display = t==='WORKOUT' ? 'block':'none';
+    }
+    document.getElementById('schType').addEventListener('change', showTypeFields);
+
+    async function submitSchedule(event){
+        event.preventDefault();
+        const { header, token } = getCsrf();
+        const t = document.getElementById('schType').value;
+        const date = document.getElementById('schDate').value;
+        const err = document.getElementById('schErr');
+        err.style.display='none';
+        const exists = getExistingForDate(date);
+        // Same-kind duplicate -> inline error
+        if (exists && ((t==='REST' && exists.kind==='REST') || (t==='WORKOUT' && exists.kind==='WORKOUT'))) {
+            err.textContent = 'There is already a ' + (exists.kind==='REST' ? 'rest day' : 'workout') + ' scheduled for this date.';
+            err.style.display='block';
+            return;
+        }
+        // Opposite kind -> replace (delete then create)
+        if (exists && ((t==='REST' && exists.kind==='WORKOUT') || (t==='WORKOUT' && exists.kind==='REST'))) {
+            const delUrl = exists.kind==='REST' ? `/api/rest-days/${exists.id}` : `/api/schedule/${exists.id}`;
+            const delRes = await fetch(delUrl, { method:'DELETE', headers:{ [header]: token }, credentials:'same-origin' });
+            if (!delRes.ok) {
+                const txt = await delRes.text().catch(()=>null);
+                err.textContent = txt && txt.length < 200 ? txt : 'Failed to replace existing schedule. Please try again.';
+                err.style.display='block';
+                return;
+            }
+        }
+        let res;
+        if (t==='REST') {
+            const payload = { date, reason: document.getElementById('schReason').value, notes: document.getElementById('schNotes').value || null };
+            res = await fetch('/api/rest-days', { method:'POST', headers:{'Content-Type':'application/json',[header]:token}, body: JSON.stringify(payload), credentials:'same-origin' });
+        } else {
+            const tpl = document.getElementById('schTemplate').value;
+            if (!tpl) { err.textContent='Please select template'; err.style.display='block'; return; }
+            const payload = { templateId: tpl, date, notes: document.getElementById('schWNotes').value || null };
+            res = await fetch('/api/schedule', { method:'POST', headers:{'Content-Type':'application/json',[header]:token}, body: JSON.stringify(payload), credentials:'same-origin' });
+        }
+        if (res.ok){ closeScheduleModal(); window.location.reload(); } else { const t = await res.text().catch(()=>null); err.textContent = `Save failed (${res.status}). ${t || ''}`.trim(); err.style.display='block'; }
+    }
+
+    async function deleteSchedule(){
+        const date = document.getElementById('schDate').value;
+        const existing = getExistingForDate(date);
+        if (!existing) return;
+        const { header, token } = getCsrf();
+        const url = existing.kind==='REST' ? `/api/rest-days/${existing.id}` : `/api/schedule/${existing.id}`;
+        const res = await fetch(url, { method:'DELETE', headers:{[header]:token}, credentials:'same-origin' });
+        if (res.ok) { closeScheduleModal(); window.location.reload(); } else { const err = document.getElementById('schErr'); const txt = await res.text().catch(()=>null); err.textContent = `Delete failed (${res.status}). ${txt || ''}`.trim(); err.style.display='block'; }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate cards
+        const cards = document.querySelectorAll('.action-card, .stat-card, .activity-item');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 + (index * 100));
+        });
+
+        // Inline calendar for current month
+        const cal = document.getElementById('restCalendar');
+        if (cal) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const first = new Date(year, month, 1);
+            const start = new Date(first);
+            start.setDate(1 - ((first.getDay()+6)%7)); // Monday start
+            const title = document.createElement('div');
+            title.className = 'calendar-title';
+            title.textContent = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+            cal.appendChild(title);
+            const grid = document.createElement('div');
+            grid.className = 'calendar-grid';
+            const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            labels.forEach(l=>{ const el=document.createElement('div'); el.className='cal-label'; el.textContent=l; grid.appendChild(el); });
+            // Build rest map from server model
+            const restList = /*[[${restDays}]]*/ [];
+            const restMap = new Map((restList||[]).map(r => [r.date, { id: r.id, reason: r.reason, kind:'REST' }]));
+            // scheduled workouts
+            fetchScheduledForMonth(year, month).then(scheduledMap => {
+            // store globally for later duplicate checks
+            window._scheduledMonthMap = scheduledMap;
+            const todayIso = new Date().toISOString().slice(0,10);
+            for (let i=0;i<42;i++){
+                const d = new Date(start); d.setDate(start.getDate()+i);
+                const cell = document.createElement('div');
+                cell.className = 'cal-cell' + (d.getMonth()!==month ? ' muted':'' );
+                const dd = String(d.getDate()).padStart(2,'0');
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const iso = `${d.getFullYear()}-${mm}-${dd}`;
+                if (iso === todayIso) {
+                    cell.classList.add('today');
+                }
+                const rinfo = restMap.get(iso);
+                const num = document.createElement('div'); num.className='cal-num'; num.textContent=d.getDate(); cell.appendChild(num);
+                if (rinfo) {
+                    cell.classList.add('has-rest');
+                    const badge=document.createElement('span'); badge.className='cal-reason'; badge.textContent=rinfo.reason; cell.appendChild(badge);
+                }
+                const sw = scheduledMap.get(iso);
+                if (sw) {
+                    cell.classList.add('has-workout');
+                    const wb=document.createElement('span'); wb.className='cal-workout'; wb.textContent=sw.templateName; cell.appendChild(wb);
+                }
+                // Click to add/edit on this date
+                cell.addEventListener('click', () => {
+                    const existsRest = restMap.has(iso);
+                    const existsWorkout = !!scheduledMap.get(iso);
+                    // Open modal directly without alerts
+                    openScheduleModal(iso);
+                    // Show delete button if something exists
+                    document.getElementById('schDeleteBtn').style.display = (existsRest || existsWorkout) ? 'inline-block' : 'none';
+                    // Prefill fields based on existing type
+                    if (existsRest) {
+                        document.getElementById('schType').value = 'REST';
+                        showTypeFields();
+                        document.getElementById('schReason').value = restMap.get(iso).reason;
+                    } else if (existsWorkout) {
+                        document.getElementById('schType').value = 'WORKOUT';
+                        showTypeFields();
+                    }
+                });
+                grid.appendChild(cell);
+            }
+            cal.appendChild(grid);
+            });
+        }
+    });
+
+    async function fetchScheduledForMonth(year, month) {
+        const first = new Date(year, month, 1);
+        const last = new Date(year, month + 1, 0);
+        const toIso = d => d.toISOString().slice(0,10);
+        const { header, token } = getCsrf();
+        const res = await fetch(`/api/schedule?from=${toIso(first)}&to=${toIso(last)}`, { headers: { [header]: token }, credentials:'same-origin' });
+        const arr = res.ok ? await res.json() : [];
+        const map = new Map();
+        arr.forEach(x => map.set(x.date, { ...x, kind:'WORKOUT' }));
+        return map;
+    }
+    function getExistingForDate(iso){
+        const rlist = /*[[${restDays}]]*/ [];
+        const r = (rlist||[]).find(x => x.date === iso);
+        if (r) return { id: r.id, kind:'REST' };
+        const swm = (window._scheduledMonthMap || new Map());
+        const sw = swm.get(iso);
+        if (sw) return { id: sw.id, kind:'WORKOUT' };
+        return null;
+    }
+</script>
+</body>
+</html>

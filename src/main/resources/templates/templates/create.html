@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPower - Create Template</title>
+    <link rel="stylesheet" th:href="@{/css/templates-create.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo"><i class="fas fa-dumbbell"></i><span>FitPower</span></a>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="/dashboard" class="nav-link"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="/exercises" class="nav-link"><i class="fas fa-dumbbell"></i><span>Exercises</span></a></li>
+                    <li class="nav-item"><a href="/workouts" class="nav-link"><i class="fas fa-history"></i><span>Workouts</span></a></li>
+                    <li class="nav-item active"><a href="/templates" class="nav-link"><i class="fas fa-clipboard-list"></i><span>Templates</span></a></li>
+                    <li class="nav-item"><a href="/stats/weekly" class="nav-link"><i class="fas fa-chart-line"></i><span>Statistics</span></a></li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="/settings" class="nav-link"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none;border:none;width:100%;text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left"><h1 class="page-title">Templates</h1></div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;"><i class="fas fa-user"></i></div>
+                    </div>
+                    <div class="profile-info"><span class="profile-name" th:text="${username}">User</span></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div class="page-title-section">
+                    <a href="/templates" class="back-link"><i class="fas fa-arrow-left"></i>Back to Templates</a>
+                    <h1 class="page-title"><i class="fas fa-clipboard-list"></i> Create Workout Template</h1>
+                    <p class="page-subtitle">Build your custom workout routine</p>
+                </div>
+            </div>
+
+            <form th:action="@{/templates}" method="post" th:object="${form}" class="template-form" id="templateForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="errors-block" th:if="${#fields.hasErrors('*')}">
+                    <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="error-content">
+                        <h3>Please fix the following errors:</h3>
+                        <ul class="error-list">
+                            <li th:each="err : ${#fields.errors('*')}" th:text="${err}">Error</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-clipboard-list"></i>Template Name</label>
+                    <input type="text" th:field="*{name}" class="form-input" placeholder="Enter template name" required>
+                </div>
+
+                <div class="add-exercise-section">
+                    <button type="button" class="btn btn-primary" onclick="openAddExerciseModal()">
+                        <i class="fas fa-plus"></i> Add Exercise
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="createSuperset()" title="Merge 2 selected exercises into superset">
+                        <i class="fas fa-link"></i> Create Superset
+                    </button>
+                </div>
+
+                <div class="exercises-list" id="exercisesList">
+                    
+                </div>
+
+                <div class="empty-exercises" id="empty-exercises">
+                    <div class="empty-icon"><i class="fas fa-dumbbell"></i></div>
+                    <h3>No exercises added yet</h3>
+                    <p>Click "Add Exercise" to start building your template</p>
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/templates}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create Template</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<div id="addExerciseModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">Add Exercise</h2>
+            <button class="modal-close" onclick="closeAddExerciseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-content">
+            <div class="form-group">
+                <label class="form-label">Select Exercise</label>
+                <select id="exerciseSelect" class="form-select">
+                    <option value="">Choose an exercise...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Target Sets</label>
+                <input type="number" id="targetSetsInput" class="form-input" value="3" min="1" max="20">
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeAddExerciseModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="addExerciseToTemplate()">Add Exercise</button>
+        </div>
+    </div>
+</div>
+
+<div id="dropSetModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">Add Drop Set</h2>
+            <button class="modal-close" onclick="closeDropSetModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-content">
+            <div class="form-group">
+                <label class="form-label">Which set should have drop sets?</label>
+                <select id="setNumberSelect" class="form-select">
+                    <option value="">Select a set...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Number of drop sets</label>
+                <input type="number" id="dropSetsCountInput" class="form-input" value="1" min="1" max="5">
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeDropSetModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="addDropSetToExercise()">Add Drop Sets</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let exerciseCounter = 0;
+    const exercisesRaw = /*[[${exercises}]]*/ [];
+    const SYSTEM_USER_ID = /*[[${T(project.fitnessapplication.config.SystemDefault).SYSTEM_USER_ID}]]*/ '';
+    
+    const exercises = (exercisesRaw || []).map(ex => ({
+        ...ex,
+        muscleGroup: ex.muscleGroup ?? ex.primaryMuscle ?? 'OTHER',
+        builtIn: String(ex.ownerUserId ?? '') === String(SYSTEM_USER_ID ?? '')
+    }));
+    
+    const MG_ORDER = ['CHEST','BACK','LEGS','SHOULDERS','BICEPS','TRICEPS','FOREARMS','HAMSTRINGS','CALVES','CORE','OTHER'];
+</script>
+
+<script>
+    function groupByMuscle(list) {
+        return list.reduce((acc, ex) => {
+            const key = String(ex.muscleGroup || 'OTHER');
+            (acc[key] ||= []).push(ex);
+            return acc;
+        }, {});
+    }
+
+    function optgroupsFor(prefixLabel, list) {
+        const by = groupByMuscle(list);
+        let html = '';
+        MG_ORDER.forEach(mg => {
+            const arr = (by[mg] || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+            if (arr.length) {
+                html += `<optgroup label="${prefixLabel} — ${mg}">`;
+                html += arr.map(ex => `<option value="${ex.id}">${ex.name}</option>`).join('');
+                html += `</optgroup>`;
+            }
+        });
+        Object.keys(by)
+            .filter(k => !MG_ORDER.includes(k))
+            .sort()
+            .forEach(mg => {
+                const arr = by[mg].slice().sort((a, b) => a.name.localeCompare(b.name));
+                html += `<optgroup label="${prefixLabel} — ${mg}">`;
+                html += arr.map(ex => `<option value="${ex.id}">${ex.name}</option>`).join('');
+                html += `</optgroup>`;
+            });
+        return html;
+    }
+
+    function optionHtml() {
+        if (!exercises || exercises.length === 0) return '<option value="">No exercises</option>';
+        const mine     = exercises.filter(ex => !ex.builtIn);
+        const builtIns = exercises.filter(ex => ex.builtIn);
+        let html = '<option value="">Select Exercise</option>';
+        html += optgroupsFor('My exercises', mine);
+        if (mine.length && builtIns.length) {
+            html += '<option value="" disabled>&nbsp;</option>';
+        }
+        html += optgroupsFor('Built-in', builtIns);
+        return html;
+    }
+
+    function populateExerciseSelect() {
+        const sel = document.getElementById('exerciseSelect');
+        if (sel) sel.innerHTML = optionHtml();
+    }
+
+    function openAddExerciseModal() {
+        populateExerciseSelect();
+        const m = document.getElementById('addExerciseModal');
+        m.style.display = 'flex';
+        setTimeout(() => m.classList.add('show'), 10);
+    }
+
+    function closeAddExerciseModal() {
+        const m = document.getElementById('addExerciseModal');
+        m.classList.remove('show');
+        setTimeout(() => m.style.display = 'none', 300);
+    }
+
+    function addExerciseToTemplate() {
+        const select = document.getElementById('exerciseSelect');
+        const exerciseId = select.value;
+        const targetSets = parseInt(document.getElementById('targetSetsInput').value) || 3;
+        
+        if (!exerciseId) {
+            alert('Please select an exercise');
+            return;
+        }
+        
+        const exercise = exercises.find(ex => String(ex.id) === String(exerciseId));
+        if (!exercise) {
+            alert('Exercise not found');
+            return;
+        }
+        
+        addExerciseCard(exercise, targetSets);
+        select.value = '';
+        document.getElementById('targetSetsInput').value = '3';
+        closeAddExerciseModal();
+    }
+
+    function addExerciseCard(exercise, targetSets = 3) {
+        const exercisesList = document.getElementById('exercisesList');
+        const emptyState = document.getElementById('empty-exercises');
+        if (emptyState) emptyState.style.display = 'none';
+
+        const exerciseCard = document.createElement('div');
+        exerciseCard.className = 'exercise-card';
+        exerciseCard.id = `exercise-${exerciseCounter}`;
+        exerciseCard.setAttribute('data-exercise-id', exercise.id);
+        exerciseCard.setAttribute('data-target-sets', targetSets);
+
+        exerciseCard.innerHTML = `
+            <div class="exercise-header">
+                <input type="checkbox" class="exercise-select" title="Select for grouping">
+                <div class="exercise-info">
+                    <h3 class="exercise-name">${exercise.name}</h3>
+                    <span class="exercise-muscle">${exercise.muscleGroup}</span>
+                </div>
+                <button type="button" class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="sets-container">
+                <div class="sets-header">
+                    <span>Target Sets: ${targetSets}</span>
+                    <div class="sets-actions">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="changeTargetSets(${exerciseCounter}, -1)">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="changeTargetSets(${exerciseCounter}, 1)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="openDropSetModal(${exerciseCounter})" title="Add drop set to specific set">
+                            <i class="fas fa-layer-group"></i> Drop Set
+                        </button>
+                    </div>
+                </div>
+                <div class="sets-list" id="sets-${exerciseCounter}">
+                    <div class="set-display">${targetSets} sets planned</div>
+                </div>
+            </div>
+        `;
+
+        exercisesList.appendChild(exerciseCard);
+        exerciseCounter++;
+    }
+
+    function changeTargetSets(exerciseIndex, delta) {
+        const card = document.getElementById(`exercise-${exerciseIndex}`);
+        let currentSets = parseInt(card.getAttribute('data-target-sets')) || 1;
+        currentSets = Math.max(1, Math.min(20, currentSets + delta));
+        card.setAttribute('data-target-sets', currentSets);
+        
+        const header = card.querySelector('.sets-header span');
+        header.textContent = `Target Sets: ${currentSets}`;
+        
+        const display = card.querySelector('.set-display');
+        if (display) display.textContent = `${currentSets} sets planned`;
+    }
+
+    let currentDropSetExerciseIndex = null;
+    
+    function openDropSetModal(exerciseIndex) {
+        currentDropSetExerciseIndex = exerciseIndex;
+        const card = document.getElementById(`exercise-${exerciseIndex}`);
+        const targetSets = parseInt(card.getAttribute('data-target-sets')) || 1;
+        
+        // Populate set number select
+        const select = document.getElementById('setNumberSelect');
+        select.innerHTML = '<option value="">Select a set...</option>';
+        
+        for (let i = 1; i <= targetSets; i++) {
+            select.innerHTML += `<option value="${i}">Set ${i}</option>`;
+        }
+        
+        // Reset drop sets count
+        document.getElementById('dropSetsCountInput').value = '1';
+        
+        const modal = document.getElementById('dropSetModal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+    
+    function closeDropSetModal() {
+        const modal = document.getElementById('dropSetModal');
+        modal.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 300);
+        currentDropSetExerciseIndex = null;
+    }
+    
+    function addDropSetToExercise() {
+        if (currentDropSetExerciseIndex === null) return;
+        
+        const setNumber = parseInt(document.getElementById('setNumberSelect').value);
+        const dropSetsCount = parseInt(document.getElementById('dropSetsCountInput').value);
+        
+        if (!setNumber || dropSetsCount < 1) {
+            alert('Please select a set number and number of drop sets');
+            return;
+        }
+        
+        const card = document.getElementById(`exercise-${currentDropSetExerciseIndex}`);
+        const setsList = card.querySelector('.sets-list');
+        
+        // Clear existing drop set indicators for this set
+        const existingIndicators = setsList.querySelectorAll(`[data-set-number="${setNumber}"]`);
+        existingIndicators.forEach(indicator => indicator.remove());
+        
+        // Add new drop set indicators
+        for (let i = 1; i <= dropSetsCount; i++) {
+            const dropIndicator = document.createElement('div');
+            dropIndicator.className = 'drop-set-indicator';
+            dropIndicator.setAttribute('data-set-number', setNumber);
+            dropIndicator.innerHTML = `
+                <span class="drop-badge">Set ${setNumber} - Drop ${i}</span>
+                <button type="button" class="btn-icon btn-remove" onclick="removeDropSet(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            setsList.appendChild(dropIndicator);
+        }
+        
+        closeDropSetModal();
+    }
+
+    function removeDropSet(btn) {
+        const indicator = btn.closest('.drop-set-indicator');
+        indicator.remove();
+    }
+
+    function removeExercise(exIdx) {
+        const card = document.getElementById(`exercise-${exIdx}`);
+        card.remove();
+        const list = document.getElementById('exercisesList');
+        const empty = document.getElementById('empty-exercises');
+        if (list.children.length === 0 && empty) empty.style.display = 'flex';
+    }
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    function getSelectedCards() {
+        return Array.from(document.querySelectorAll('.exercise-card'))
+            .filter(card => card.querySelector('.exercise-select')?.checked);
+    }
+
+    function createSuperset() {
+        const selected = getSelectedCards();
+        if (selected.length !== 2) {
+            alert('Please select exactly 2 exercises to create a superset');
+            return;
+        }
+        
+        const [card1, card2] = selected;
+        const ex1Id = card1.getAttribute('data-exercise-id');
+        const ex2Id = card2.getAttribute('data-exercise-id');
+        const ex1Name = card1.querySelector('.exercise-name').textContent.trim();
+        const ex2Name = card2.querySelector('.exercise-name').textContent.trim();
+        const ex1Muscle = card1.querySelector('.exercise-muscle').textContent;
+        const ex2Muscle = card2.querySelector('.exercise-muscle').textContent;
+        const targetSets = parseInt(card1.getAttribute('data-target-sets')) || 3;
+        
+        // Create merged superset card
+        const exercisesList = document.getElementById('exercisesList');
+        const supersetCard = document.createElement('div');
+        supersetCard.className = 'exercise-card superset-card';
+        supersetCard.id = `exercise-${exerciseCounter}`;
+        supersetCard.setAttribute('data-is-superset', 'true');
+        supersetCard.setAttribute('data-exercise-id-1', ex1Id);
+        supersetCard.setAttribute('data-exercise-id-2', ex2Id);
+        supersetCard.setAttribute('data-target-sets', targetSets);
+        
+        supersetCard.innerHTML = `
+            <div class="exercise-header">
+                <div class="exercise-info">
+                    <h3 class="exercise-name">
+                        <span class="superset-badge">SUPERSET</span>
+                        ${ex1Name} + ${ex2Name}
+                    </h3>
+                    <span class="exercise-muscle">${ex1Muscle} / ${ex2Muscle}</span>
+                </div>
+                <div class="exercise-actions">
+                    <button type="button" class="btn-icon btn-revert" onclick="revertSuperset(${exerciseCounter})" title="Revert to separate exercises">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button type="button" class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="sets-container">
+                <div class="sets-header">
+                    <span>Target Sets: ${targetSets}</span>
+                    <div class="sets-actions">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="changeTargetSets(${exerciseCounter}, -1)">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="changeTargetSets(${exerciseCounter}, 1)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="sets-list">
+                    <div class="set-display">${targetSets} superset pairs planned</div>
+                </div>
+            </div>
+        `;
+        
+        card1.before(supersetCard);
+        card1.remove();
+        card2.remove();
+        exerciseCounter++;
+    }
+
+    function revertSuperset(exerciseIndex) {
+        const supersetCard = document.getElementById(`exercise-${exerciseIndex}`);
+        const ex1Id = supersetCard.getAttribute('data-exercise-id-1');
+        const ex2Id = supersetCard.getAttribute('data-exercise-id-2');
+        const targetSets = parseInt(supersetCard.getAttribute('data-target-sets')) || 3;
+        
+        const ex1 = exercises.find(ex => String(ex.id) === String(ex1Id));
+        const ex2 = exercises.find(ex => String(ex.id) === String(ex2Id));
+        
+        if (ex1 && ex2) {
+            supersetCard.before(createExerciseCardElement(ex1, targetSets));
+            supersetCard.before(createExerciseCardElement(ex2, targetSets));
+        }
+        
+        supersetCard.remove();
+    }
+
+    function createExerciseCardElement(exercise, targetSets) {
+        const exerciseCard = document.createElement('div');
+        exerciseCard.className = 'exercise-card';
+        exerciseCard.id = `exercise-${exerciseCounter}`;
+        exerciseCard.setAttribute('data-exercise-id', exercise.id);
+        exerciseCard.setAttribute('data-target-sets', targetSets);
+
+        exerciseCard.innerHTML = `
+            <div class="exercise-header">
+                <input type="checkbox" class="exercise-select" title="Select for grouping">
+                <div class="exercise-info">
+                    <h3 class="exercise-name">${exercise.name}</h3>
+                    <span class="exercise-muscle">${exercise.muscleGroup}</span>
+                </div>
+                <button type="button" class="btn-icon btn-remove" onclick="removeExercise(${exerciseCounter})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="sets-container">
+                <div class="sets-header">
+                    <span>Target Sets: ${targetSets}</span>
+                    <div class="sets-actions">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="changeTargetSets(${exerciseCounter}, -1)">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="changeTargetSets(${exerciseCounter}, 1)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="openDropSetModal(${exerciseCounter})" title="Add drop set to specific set">
+                            <i class="fas fa-layer-group"></i> Drop Set
+                        </button>
+                    </div>
+                </div>
+                <div class="sets-list" id="sets-${exerciseCounter}">
+                    <div class="set-display">${targetSets} sets planned</div>
+                </div>
+            </div>
+        `;
+        
+        exerciseCounter++;
+        return exerciseCard;
+    }
+
+    // Form submission
+    document.getElementById('templateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Remove existing hidden inputs
+        document.querySelectorAll('input[name^="items["]').forEach(el => el.remove());
+        
+        const cards = document.querySelectorAll('.exercise-card');
+        let itemIndex = 0;
+        
+        cards.forEach(card => {
+            const isSuperset = card.getAttribute('data-is-superset') === 'true';
+            
+            if (isSuperset) {
+                const ex1Id = card.getAttribute('data-exercise-id-1');
+                const ex2Id = card.getAttribute('data-exercise-id-2');
+                const targetSets = parseInt(card.getAttribute('data-target-sets')) || 3;
+                const groupId = generateUUID();
+                
+                // Add exercise 1
+                addHiddenInput(this, `items[${itemIndex}].exerciseId`, ex1Id);
+                addHiddenInput(this, `items[${itemIndex}].sets`, targetSets);
+                addHiddenInput(this, `items[${itemIndex}].orderIndex`, itemIndex);
+                addHiddenInput(this, `items[${itemIndex}].groupId`, groupId);
+                addHiddenInput(this, `items[${itemIndex}].groupType`, 'SUPERSET');
+                addHiddenInput(this, `items[${itemIndex}].groupOrder`, '1');
+                itemIndex++;
+                
+                // Add exercise 2
+                addHiddenInput(this, `items[${itemIndex}].exerciseId`, ex2Id);
+                addHiddenInput(this, `items[${itemIndex}].sets`, targetSets);
+                addHiddenInput(this, `items[${itemIndex}].orderIndex`, itemIndex);
+                addHiddenInput(this, `items[${itemIndex}].groupId`, groupId);
+                addHiddenInput(this, `items[${itemIndex}].groupType`, 'SUPERSET');
+                addHiddenInput(this, `items[${itemIndex}].groupOrder`, '2');
+                itemIndex++;
+                
+            } else {
+                const exerciseId = card.getAttribute('data-exercise-id');
+                const targetSets = parseInt(card.getAttribute('data-target-sets')) || 1;
+                const dropSetIndicators = card.querySelectorAll('.drop-set-indicator');
+                
+                if (dropSetIndicators.length > 0) {
+                    // Group drop sets by set number
+                    const dropSetsBySetNumber = new Map();
+                    dropSetIndicators.forEach(indicator => {
+                        const setNumber = parseInt(indicator.getAttribute('data-set-number'));
+                        if (!dropSetsBySetNumber.has(setNumber)) {
+                            dropSetsBySetNumber.set(setNumber, []);
+                        }
+                        dropSetsBySetNumber.get(setNumber).push(indicator);
+                    });
+                    
+                    // Process each set that has drop sets
+                    dropSetsBySetNumber.forEach((indicators, setNumber) => {
+                        const groupId = generateUUID();
+                        
+                        // Main exercise record for this set with drop sets
+                        addHiddenInput(this, `items[${itemIndex}].exerciseId`, exerciseId);
+                        addHiddenInput(this, `items[${itemIndex}].sets`, targetSets);
+                        addHiddenInput(this, `items[${itemIndex}].orderIndex`, itemIndex);
+                        addHiddenInput(this, `items[${itemIndex}].groupId`, groupId);
+                        addHiddenInput(this, `items[${itemIndex}].groupType`, 'DROP_SET');
+                        addHiddenInput(this, `items[${itemIndex}].groupOrder`, '0');
+                        addHiddenInput(this, `items[${itemIndex}].setNumber`, setNumber.toString());
+                        itemIndex++;
+                        
+                        // Drop sets for this specific set
+                        for (let i = 1; i <= indicators.length; i++) {
+                            addHiddenInput(this, `items[${itemIndex}].exerciseId`, exerciseId);
+                            addHiddenInput(this, `items[${itemIndex}].sets`, targetSets);
+                            addHiddenInput(this, `items[${itemIndex}].orderIndex`, itemIndex);
+                            addHiddenInput(this, `items[${itemIndex}].groupId`, groupId);
+                            addHiddenInput(this, `items[${itemIndex}].groupType`, 'DROP_SET');
+                            addHiddenInput(this, `items[${itemIndex}].groupOrder`, i.toString());
+                            addHiddenInput(this, `items[${itemIndex}].setNumber`, setNumber.toString());
+                            itemIndex++;
+                        }
+                    });
+                } else {
+                    // Regular exercise without drop sets
+                    addHiddenInput(this, `items[${itemIndex}].exerciseId`, exerciseId);
+                    addHiddenInput(this, `items[${itemIndex}].sets`, targetSets);
+                    addHiddenInput(this, `items[${itemIndex}].orderIndex`, itemIndex);
+                    itemIndex++;
+                }
+            }
+        });
+        
+        if (itemIndex === 0) {
+            alert('Please add at least one exercise to the template');
+            return;
+        }
+        
+        this.submit();
+    });
+
+    function addHiddenInput(form, name, value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value || '';
+        form.appendChild(input);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        populateExerciseSelect();
+    });
+</script>
+</body>
+</html>

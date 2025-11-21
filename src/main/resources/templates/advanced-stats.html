@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPower - Advanced Analytics</title>
+    <link rel="stylesheet" th:href="@{/css/advanced-stats.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="dashboard-container">
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>FitPower</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/exercises" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Exercises</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/workouts" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            <span>Workouts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/templates" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Templates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="/stats/weekly" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none; border:none; width:100%; text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <main class="main-content">
+        
+        <header class="top-header">
+            <div class="header-left">
+                <h1 class="page-title">Advanced Analytics</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name" th:text="${username}">User</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        
+        <div class="dashboard-content">
+            
+            <div class="page-header">
+                <div class="page-title-section">
+                    <a href="/stats/weekly" class="back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Statistics
+                    </a>
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Advanced Training Data Analysis
+                    </h1>
+                    <p class="page-subtitle">Deep insights into your training performance and progress</p>
+                    <div class="date-range-display">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span th:text="${#temporals.format(from, 'MMM dd, yyyy')} + ' - ' + ${#temporals.format(to, 'MMM dd, yyyy')}">Date Range</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <section class="analytics-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-check"></i> Training Frequency Analysis</h2>
+                    <p class="section-subtitle">How often you train and your consistency patterns</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Workouts</div>
+                            <div class="stat-value" th:text="${trainingFrequency.totalWorkouts()}">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Avg Per Week</div>
+                            <div class="stat-value" th:text="${trainingFrequency.avgWorkoutsPerWeek()}">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Longest Streak</div>
+                            <div class="stat-value" th:text="${trainingFrequency.longestStreak()} + ' days'">0 days</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Current Streak</div>
+                            <div class="stat-value" th:text="${trainingFrequency.currentStreak()} + ' days'">0 days</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Workouts by Day of Week</h3>
+                        <canvas id="dayOfWeekChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>Weekly Breakdown</h3>
+                        <canvas id="weeklyBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            
+            <section class="analytics-section" th:if="${!volumeTrends.isEmpty()}">
+                <div class="section-header">
+                    <h2><i class="fas fa-weight-hanging"></i> Exercise Volume Trends</h2>
+                    <p class="section-subtitle">Track volume progression for each exercise over time</p>
+                </div>
+
+                <div class="exercise-trends-list">
+                    <div class="trend-card" th:each="trend : ${volumeTrends}">
+                        <div class="trend-header">
+                            <div class="trend-title">
+                                <h3 th:text="${trend.exerciseName()}">Exercise Name</h3>
+                                <span class="muscle-badge" th:text="${trend.muscleGroup()}">Muscle</span>
+                            </div>
+                            <div class="trend-indicator" th:classappend="${trend.trend()}">
+                                <i class="fas" th:classappend="${trend.trend() == 'increasing' ? 'fa-arrow-up' : (trend.trend() == 'decreasing' ? 'fa-arrow-down' : 'fa-minus')}"></i>
+                                <span th:text="${trend.trend()}">Trend</span>
+                            </div>
+                        </div>
+
+                        <div class="trend-stats">
+                            <div class="trend-stat">
+                                <span class="trend-stat-label">Total Volume</span>
+                                <span class="trend-stat-value" th:text="${#numbers.formatDecimal(trend.totalVolume(), 0, 'COMMA', 0, 'POINT')} + ' lbs'">0 lbs</span>
+                            </div>
+                            <div class="trend-stat">
+                                <span class="trend-stat-label">Total Sets</span>
+                                <span class="trend-stat-value" th:text="${trend.totalSets()}">0</span>
+                            </div>
+                            <div class="trend-stat">
+                                <span class="trend-stat-label">Avg Per Session</span>
+                                <span class="trend-stat-value" th:text="${#numbers.formatDecimal(trend.avgVolumePerSession(), 0, 'COMMA', 0, 'POINT')} + ' lbs'">0 lbs</span>
+                            </div>
+                        </div>
+
+                        <div class="trend-chart">
+                            <canvas th:id="'volumeChart' + ${trendStat.index}" class="volume-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            
+            <section class="analytics-section" th:if="${!progressiveOverload.isEmpty()}">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-area"></i> Progressive Overload Tracking</h2>
+                    <p class="section-subtitle">Monitor strength gains and identify plateaus</p>
+                </div>
+
+                <div class="overload-grid">
+                    <div class="overload-card" th:each="overload : ${progressiveOverload}">
+                        <div class="overload-header">
+                            <div class="overload-title">
+                                <h3 th:text="${overload.exerciseName()}">Exercise</h3>
+                                <span class="muscle-badge" th:text="${overload.muscleGroup()}">Muscle</span>
+                            </div>
+                            <div class="status-badge" th:classappend="${overload.status()}">
+                                <i class="fas" th:classappend="${overload.status() == 'progressing' ? 'fa-rocket' : (overload.status() == 'plateau' ? 'fa-pause' : 'fa-check')}"></i>
+                                <span th:text="${overload.status()}">Status</span>
+                            </div>
+                        </div>
+
+                        <div class="overload-progress">
+                            <div class="progress-info">
+                                <div class="progress-item">
+                                    <span class="progress-label">Starting Weight</span>
+                                    <span class="progress-value" th:text="${overload.startingWeight()} + ' lbs'">0 lbs</span>
+                                </div>
+                                <div class="progress-arrow">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="progress-label">Current Weight</span>
+                                    <span class="progress-value" th:text="${overload.currentWeight()} + ' lbs'">0 lbs</span>
+                                </div>
+                            </div>
+                            <div class="progress-percent" th:classappend="${overload.progressPercent() > 0 ? 'positive' : 'neutral'}">
+                                <i class="fas fa-arrow-up" th:if="${overload.progressPercent() > 0}"></i>
+                                <i class="fas fa-minus" th:if="${overload.progressPercent() == 0}"></i>
+                                <span th:text="${overload.progressPercent()} + '%'">0%</span>
+                            </div>
+                        </div>
+
+                        <div class="overload-chart">
+                            <canvas th:id="'overloadChart' + ${overloadStat.index}" class="overload-chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            
+            <section class="analytics-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-trophy"></i> Personal Records & Milestones</h2>
+                    <p class="section-subtitle">Your achievements and personal bests</p>
+                </div>
+
+                
+                <div class="milestones-section" th:if="${!personalRecords.milestones().isEmpty()}">
+                    <h3>🏆 Milestones Achieved</h3>
+                    <div class="milestones-grid">
+                        <div class="milestone-card" th:each="milestone : ${personalRecords.milestones()}">
+                            <div class="milestone-icon" th:text="${milestone.icon()}">🏆</div>
+                            <div class="milestone-content">
+                                <h4 th:text="${milestone.title()}">Milestone Title</h4>
+                                <p th:text="${milestone.description()}">Description</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="prs-section" th:if="${!personalRecords.exercisePRs().isEmpty()}">
+                    <h3>💪 Exercise Personal Records</h3>
+                    <div class="prs-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Exercise</th>
+                                    <th>Record Type</th>
+                                    <th>Weight</th>
+                                    <th>Reps</th>
+                                    <th>Date Achieved</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pr : ${personalRecords.exercisePRs()}">
+                                    <td>
+                                        <strong th:text="${pr.exerciseName()}">Exercise</strong>
+                                    </td>
+                                    <td>
+                                        <span class="record-type-badge" th:text="${pr.recordType()}">Type</span>
+                                    </td>
+                                    <td th:text="${pr.weight()} + ' lbs'">0 lbs</td>
+                                    <td th:text="${pr.reps()}">0</td>
+                                    <td th:text="${#temporals.format(pr.achievedDate(), 'MMM dd, yyyy')}">Date</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Training Frequency Data
+    const dayOfWeekData = /*[[${trainingFrequency.workoutsByDayOfWeek()}]]*/ {};
+    const weeklyBreakdown = /*[[${trainingFrequency.weeklyBreakdown()}]]*/ [];
+    const volumeTrends = /*[[${volumeTrends}]]*/ [];
+    const progressiveOverload = /*[[${progressiveOverload}]]*/ [];
+
+    // Day of Week Chart
+    const dayOfWeekCtx = document.getElementById('dayOfWeekChart');
+    if (dayOfWeekCtx) {
+        new Chart(dayOfWeekCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                datasets: [{
+                    label: 'Workouts',
+                    data: [
+                        dayOfWeekData.MONDAY || 0,
+                        dayOfWeekData.TUESDAY || 0,
+                        dayOfWeekData.WEDNESDAY || 0,
+                        dayOfWeekData.THURSDAY || 0,
+                        dayOfWeekData.FRIDAY || 0,
+                        dayOfWeekData.SATURDAY || 0,
+                        dayOfWeekData.SUNDAY || 0
+                    ],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Weekly Breakdown Chart
+    const weeklyBreakdownCtx = document.getElementById('weeklyBreakdownChart');
+    if (weeklyBreakdownCtx && weeklyBreakdown.length > 0) {
+        new Chart(weeklyBreakdownCtx, {
+            type: 'line',
+            data: {
+                labels: weeklyBreakdown.map(w => {
+                    const date = new Date(w.weekStart);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }),
+                datasets: [{
+                    label: 'Workouts per Week',
+                    data: weeklyBreakdown.map(w => w.workoutCount),
+                    borderColor: 'rgba(138, 95, 184, 1)',
+                    backgroundColor: 'rgba(138, 95, 184, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: 'rgba(138, 95, 184, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Volume Trend Charts
+    volumeTrends.forEach((trend, index) => {
+        const canvas = document.getElementById('volumeChart' + index);
+        if (canvas && trend.weeklyData && trend.weeklyData.length > 0) {
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: trend.weeklyData.map(w => {
+                        const date = new Date(w.weekStart);
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    }),
+                    datasets: [{
+                        label: 'Volume (lbs)',
+                        data: trend.weeklyData.map(w => w.volume),
+                        borderColor: trend.trend === 'increasing' ? 'rgba(46, 213, 115, 1)' : 
+                                    trend.trend === 'decreasing' ? 'rgba(255, 71, 87, 1)' : 
+                                    'rgba(102, 126, 234, 1)',
+                        backgroundColor: trend.trend === 'increasing' ? 'rgba(46, 213, 115, 0.1)' : 
+                                        trend.trend === 'decreasing' ? 'rgba(255, 71, 87, 0.1)' : 
+                                        'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    // Progressive Overload Charts
+    progressiveOverload.forEach((overload, index) => {
+        const canvas = document.getElementById('overloadChart' + index);
+        if (canvas && overload.progressPoints && overload.progressPoints.length > 0) {
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: overload.progressPoints.map(p => {
+                        const date = new Date(p.date);
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    }),
+                    datasets: [{
+                        label: 'Max Weight (lbs)',
+                        data: overload.progressPoints.map(p => p.weight),
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: 'rgba(255, 159, 64, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+    /*]]>*/
+</script>
+
+</body>
+</html>

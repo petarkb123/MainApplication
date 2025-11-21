@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - FitPower</title>
+    <link rel="stylesheet" th:href="@{/css/terms.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="page-container">
+    <header class="page-header">
+        <a href="/" class="logo"><i class="fas fa-dumbbell"></i><span>FitPower</span></a>
+        <a href="/register" class="btn btn-glass">Back to Register</a>
+    </header>
+
+    <main class="content">
+        <h1 class="title">Terms of Service</h1>
+        <p class="subtitle">Last updated: <span th:text="${#temporals.format(T(java.time.LocalDate).now(),'MMM dd, yyyy')}">Today</span></p>
+
+        <section class="card">
+            <h2>1. Acceptance of Terms</h2>
+            <p>By creating an account or using FitPower, you agree to these Terms. If you do not agree, do not use the service.</p>
+        </section>
+
+        <section class="card">
+            <h2>2. Use of the Service</h2>
+            <ul>
+                <li>You must be at least 16 years old to use FitPower.</li>
+                <li>Do not share your account or misuse the platform.</li>
+                <li>Consult a medical professional before beginning any fitness program.</li>
+            </ul>
+        </section>
+
+        <section class="card">
+            <h2>3. Content and Templates</h2>
+            <p>You are responsible for the workouts, templates, and exercise data you create. Do not upload unlawful or infringing content. Built‑in exercises are provided for convenience and may not be exhaustive or medically appropriate for you.</p>
+        </section>
+
+        <section class="card">
+            <h2>4. Subscriptions and Changes</h2>
+            <p>We may introduce paid features in the future. We may modify the Service or these Terms with reasonable notice.</p>
+        </section>
+
+        <section class="card">
+            <h2>5. Limitation of Liability</h2>
+            <p>FitPower is provided “as is.” We are not liable for injuries or losses arising from your use of the app, workouts, or guidance within.</p>
+        </section>
+
+        <section class="card">
+            <h2>6. Contact</h2>
+            <p>Questions about these Terms? Contact us at support@fitpower.local</p>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        <a href="/privacy">Privacy Policy</a>
+        <span>•</span>
+        <a href="/terms">Terms</a>
+    </footer>
+</div>
+</body>
+</html>
+
+

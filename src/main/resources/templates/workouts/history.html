@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPower - Workout History</title>
+    <link rel="stylesheet" th:href="@{/css/workouts.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>FitPower</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/exercises" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Exercises</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="/workouts" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            <span>Workouts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/templates" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Templates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/stats/weekly" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none; border:none; width:100%; text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <main class="main-content">
+        
+        <header class="top-header">
+            <div class="header-left">
+                <h1 class="page-title">Workouts</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name" th:text="${username}">User</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        
+        <div class="dashboard-content">
+            
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <i class="fas fa-history"></i>
+                        Workout History
+                    </h1>
+                    <p class="page-subtitle">Track your workout sessions</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="openStartWorkoutModal()">
+                        <i class="fas fa-play"></i>
+                        Start New Workout
+                    </button>
+                </div>
+            </div>
+
+            
+            <div class="sessions-list" th:if="${not #lists.isEmpty(sessions)}">
+                <div class="session-card" th:each="ws : ${sessions}">
+                    <div class="session-header">
+                        <div class="session-icon">
+                            <i class="fas fa-dumbbell" th:if="${ws.finishedAt == null}"></i>
+                            <i class="fas fa-check-circle" th:if="${ws.finishedAt != null}"></i>
+                        </div>
+                        <div class="session-status"
+                             th:text="${ws.finishedAt == null ? 'IN_PROGRESS' : 'COMPLETED'}">Status</div>
+                    </div>
+
+                    <div class="session-content">
+                        <div class="session-details">
+                            <h3 class="session-title">Workout Session</h3>
+                            <div class="session-meta">
+                                    <span class="session-date"
+                                          th:text="${#temporals.format(ws.startedAt, 'MMM dd, yyyy')}">Date</span>
+                                <span class="session-time"
+                                      th:text="${#temporals.format(ws.startedAt, 'HH:mm')}">Time</span>
+                            </div>
+                            <div class="session-duration" th:if="${ws.finishedAt != null}">
+                                Finished at: <span th:text="${#temporals.format(ws.finishedAt, 'HH:mm')}">End Time</span>
+                            </div>
+                        </div>
+
+                        <div class="session-actions">
+                            
+                            <a class="btn btn-primary btn-sm" th:if="${ws.finishedAt == null}"
+                               th:href="@{|/workouts/session?sessionId=${ws.id}|}">
+                                <i class="fas fa-play"></i> Continue
+                            </a>
+                            <form th:if="${ws.finishedAt == null}"
+                                  th:action="@{|/workouts/${ws.id}/finish|}" method="post" style="display:inline; margin-left:6px;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button class="btn btn-outline btn-sm" type="submit">
+                                    <i class="fas fa-stop"></i> Finish
+                                </button>
+                            </form>
+
+                            <a class="btn btn-primary btn-sm" th:href="@{|/workouts/${ws.id}|}" th:if="${ws.finishedAt != null}">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <form th:action="@{|/workouts/${ws.id}/delete|}" method="post" style="display:inline;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button class="btn-icon btn-delete" type="submit" title="Delete Workout">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="empty-state" th:if="${#lists.isEmpty(sessions)}">
+                <div class="empty-icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <h3>No workouts yet</h3>
+                <p>Start your fitness journey with your first workout!</p>
+                <button class="btn btn-primary" onclick="openStartWorkoutModal()">
+                    <i class="fas fa-play"></i>
+                    Start Your First Workout
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="startWorkoutModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">Start Workout</h2>
+            <button class="modal-close" onclick="closeStartWorkoutModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-content">
+            <div class="form-group">
+                <label class="form-label">Template (Optional)</label>
+                <select id="templateSelect" class="form-select">
+                    <option value="">Start empty workout</option>
+                    <option th:each="template : ${templates}"
+                            th:value="${template.id}"
+                            th:text="${template.name}"></option>
+                </select>
+                <small class="form-help">Select a template to pre-fill exercises</small>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeStartWorkoutModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="startWorkout()">Start</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let exerciseCounter = 0;
+    const exercises = /*[[${exercises}]]*/ [];
+    const workoutSessionId = /*[[${sessionId}]]*/ null;
+</script>
+
+
+<script>
+    // Modal functions
+    function openStartWorkoutModal() {
+        const modal = document.getElementById('startWorkoutModal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function closeStartWorkoutModal() {
+        const modal = document.getElementById('startWorkoutModal');
+        modal.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    function startWorkout() {
+        const templateId = document.getElementById('templateSelect').value;
+        let url = '/workouts/session';
+        if (templateId) {
+            url += '?templateId=' + templateId;
+        }
+        window.location.href = url;
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('startWorkoutModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeStartWorkoutModal();
+        }
+    });
+
+    // Animation on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.session-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0'; card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                card.style.opacity = '1'; card.style.transform = 'translateY(0)';
+            }, 100 + (index * 100));
+        });
+    });
+</script>
+</body>
+</html>
