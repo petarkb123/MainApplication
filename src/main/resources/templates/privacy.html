@@ -2,18 +2,45 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Privacy Policy - FitPower</title>
-    <link rel="stylesheet" th:href="@{/css/privacy.css}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/component-layout.css}">
+    <link rel="stylesheet" th:href="@{/css/component-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/component-buttons.css}">
+    <link rel="stylesheet" th:href="@{/css/component-forms.css}">
+    <link rel="stylesheet" th:href="@{/css/component-modals.css}">
+    <link rel="stylesheet" th:href="@{/css/component-headers.css}">
+    <link rel="stylesheet" th:href="@{/css/component-profile.css}">
+
+    <link rel="stylesheet" th:href="@{/css/privacy.css}">
 </head>
 <body>
-<div class="page-container">
-    <header class="page-header">
-        <a href="/" class="logo"><i class="fas fa-dumbbell"></i><span>FitPower</span></a>
-        <a href="/register" class="btn btn-glass">Back to Register</a>
+
+<div class="background-elements">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+</div>
+
+<div class="main-glass-container">
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="/" class="nav-logo">
+                    <div class="logo-circle">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <span>FitPower</span>
+                </a>
+                <div class="nav-auth">
+                    <a href="/register" class="btn btn-glass">Back to Register</a>
+                </div>
+            </div>
+        </nav>
     </header>
+    
+    <div class="page-container">
 
     <main class="content">
         <h1 class="title">Privacy Policy</h1>
@@ -58,12 +85,15 @@
     </main>
 
     <footer class="page-footer">
+        <span>© 2025 FitPower</span>
+        <span>•</span>
         <a href="/privacy">Privacy Policy</a>
         <span>•</span>
         <a href="/terms">Terms</a>
     </footer>
+    </div>
 </div>
+
 </body>
 </html>
-
 

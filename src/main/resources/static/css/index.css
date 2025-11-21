@@ -1,27 +1,22 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 
 
 html {
     scroll-behavior: smooth;
-    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%);
     min-height: 100%;
+    background: #1a1a30;
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
     color: #ffffff;
-    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%);
-    background-attachment: fixed;
-    background-size: 100% 100%;
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%, #1a1a30 100%);
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .background-elements {
@@ -32,7 +27,6 @@ body {
     height: 100%;
     z-index: -1;
     overflow: hidden;
-    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%);
 }
 
 .bg-circle {
@@ -139,6 +133,10 @@ body {
     z-index: 100;
 }
 
+.navbar {
+    width: 100%;
+}
+
 .nav-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -146,24 +144,47 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem;
 }
 
 .nav-logo {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    text-decoration: none;
+    color: white;
     font-size: 1.5rem;
     font-weight: 800;
-    color: white;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
+    transition: transform 0.3s ease;
 }
 
 .nav-logo:hover {
+    transform: translateY(-2px);
     color: white;
     text-decoration: none;
-    transform: translateY(-2px);
+}
+
+.nav-logo span {
+    font-weight: 800;
+}
+
+.nav-menu-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.nav-separator {
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 0.25rem;
+}
+
+.nav-auth {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .logo-circle {
@@ -178,24 +199,10 @@ body {
     position: relative;
 }
 
-.logo-circle::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: inherit;
-    filter: blur(10px);
-    opacity: 0.5;
-    z-index: -1;
-}
-
-.nav-menu-indicator {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    color: white;
-    font-weight: 500;
+.logo-circle i {
+    color: #ffffff;
+    font-size: 1.25rem;
+    line-height: 1;
 }
 
 .nav-menu-indicator .nav-item {
@@ -205,21 +212,6 @@ body {
     cursor: default;
     transition: color 0.3s ease;
     font-size: 0.95rem;
-}
-
-.nav-menu-indicator .nav-item:hover {
-    color: rgba(255, 255, 255, 1);
-}
-
-.nav-separator {
-    color: rgba(102, 126, 234, 0.5);
-    font-weight: 300;
-}
-
-.nav-auth {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
 }
 
 .btn {
@@ -293,17 +285,21 @@ body {
 
 .btn-glass:hover {
     background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .btn-large {
-    padding: 1.125rem 2.5rem;
-    font-size: 1.05rem;
+    padding: 1.125rem 2.25rem;
+    font-size: 1.1rem;
 }
 
 .main-content {
     padding: 0;
+    margin-left: 0 !important;
+    max-width: 100%;
+    width: 100%;
 }
 
 .hero {
@@ -693,155 +689,6 @@ body {
     }
 }
 
-@media (max-width: 1024px) {
-    .hero-container {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-        text-align: center;
-    }
-
-    .hero-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .hero-description {
-        max-width: 100%;
-    }
-
-    .hero-devices {
-        order: -1;
-        justify-content: center;
-    }
-
-    .features-cards {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .hero-title {
-        font-size: 3rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .nav-container {
-        padding: 0 1.5rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .nav-menu-indicator {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-        gap: 1rem;
-    }
-
-    .nav-menu-indicator .nav-item {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
-    }
-
-    .hero {
-        padding: 3rem 0 2rem;
-    }
-
-    .hero-title {
-        font-size: 2.5rem;
-    }
-
-    .hero-description {
-        font-size: 1.05rem;
-    }
-
-    .hero-actions {
-        justify-content: center;
-    }
-
-    .device-laptop {
-        width: 260px;
-        height: 160px;
-    }
-
-    .device-phone {
-        width: 70px;
-        height: 140px;
-    }
-
-    .welcome-card {
-        padding: 3rem 2rem;
-    }
-
-    .welcome-card h2 {
-        font-size: 2rem;
-    }
-
-    .welcome-actions {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .btn {
-        width: 100%;
-        max-width: 320px;
-        justify-content: center;
-    }
-
-    .feature-card {
-        padding: 2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-title {
-        font-size: 2rem;
-    }
-
-    .hero-description {
-        font-size: 0.95rem;
-    }
-
-    .hero-devices {
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .device-laptop {
-        transform: none;
-    }
-
-    .device-phone {
-        transform: none;
-    }
-
-    .welcome-card {
-        padding: 2rem 1.5rem;
-    }
-
-    .welcome-icon {
-        width: 70px;
-        height: 70px;
-        font-size: 2rem;
-    }
-
-    .welcome-card h2 {
-        font-size: 1.75rem;
-    }
-
-    .btn-large {
-        padding: 1rem 2rem;
-        font-size: 0.95rem;
-    }
-}
-
-.btn:focus-visible {
-    outline: 3px solid rgba(102, 126, 234, 0.5);
-    outline-offset: 3px;
-}
-
 .btn:active {
     transform: scale(0.97);
 }
@@ -860,7 +707,7 @@ body {
         border-width: 2px;
     }
 
-    .feature-card,
+.feature-card,
     .welcome-card {
         border-width: 2px;
     }

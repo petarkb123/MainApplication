@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/component-layout.css}">
+    <link rel="stylesheet" th:href="@{/css/component-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/component-buttons.css}">
+    <link rel="stylesheet" th:href="@{/css/component-forms.css}">
+    <link rel="stylesheet" th:href="@{/css/component-modals.css}">
+    <link rel="stylesheet" th:href="@{/css/component-headers.css}">
+    <link rel="stylesheet" th:href="@{/css/component-profile.css}">
+    <link rel="stylesheet" th:href="@{/css/subscription.css}">
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>FitPower</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/exercises" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Exercises</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/workouts" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            <span>Workouts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/templates" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Templates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/stats/weekly" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item active">
+                        <a href="/subscription" class="nav-link">
+                            <i class="fas fa-crown"></i>
+                            <span>Subscription</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${isAdmin}">
+                        <a href="/admin/users" class="nav-link">
+                            <i class="fas fa-users-cog"></i>
+                            <span>Admin Panel</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none; border:none; width:100%; text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <div class="user-profile mobile-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;"><i class="fas fa-user"></i></div>
+                    </div>
+                    <div class="profile-info"><span class="profile-name" th:text="${username}">User</span></div>
+                </div>
+                <h1 class="page-title">Subscription</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile desktop-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;"><i class="fas fa-user"></i></div>
+                    </div>
+                    <div class="profile-info"><span class="profile-name" th:text="${username}">User</span></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="subscription-container">
+            <h2>Subscription Plans</h2>
+            <p class="subtitle">Unlock advanced training methods with Pro.</p>
+
+            <div class="plans">
+                <div class="plan" th:classappend="${currentTier != null && currentTier.name() == 'BASIC'} ? ' current'">
+                    <h3>Basic</h3>
+                    <ul>
+                        <li>Core tracking</li>
+                        <li>Templates</li>
+                        <li>History & stats</li>
+                    </ul>
+                    <form th:if="${currentTier == null || currentTier.name() != 'BASIC'}" th:action="@{/subscription/select}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <input type="hidden" name="tier" value="BASIC"/>
+                        <button class="btn secondary" type="submit">Switch to Basic</button>
+                    </form>
+                    <div th:if="${currentTier != null && currentTier.name() == 'BASIC'}" class="current-label">Current Plan</div>
+                </div>
+
+                <div class="plan pro" th:classappend="${currentTier != null && currentTier.name() == 'PRO'} ? ' current'">
+                    <h3>Pro</h3>
+                    <ul>
+                        <li>Drop sets</li>
+                        <li>Advanced statistics</li>
+                        <li>Priority improvements</li>
+                    </ul>
+                    <div class="renewal" th:if="${subscriptionActive && nextRenewalAt != null}">
+                        Renews on <span th:text="${#temporals.format(nextRenewalAt, 'yyyy-MM-dd')}"></span>
+                    </div>
+                    <form th:if="${currentTier == null || currentTier.name() != 'PRO'}" th:action="@{/subscription/select}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <input type="hidden" name="tier" value="PRO"/>
+                        <button class="btn primary" type="submit">Select Pro</button>
+                    </form>
+                    <div th:if="${currentTier != null && currentTier.name() == 'PRO'}" class="current-label">Current Plan</div>
+                </div>
+            </div>
+            <div th:if="${successMessage}" class="flash" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="flash flash-error" th:text="${errorMessage}"></div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/subscription.js}"></script>
+</body>
+</html>
+

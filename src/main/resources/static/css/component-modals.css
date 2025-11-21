@@ -1,0 +1,29 @@
+
+
+
+.modal-overlay.show {
+    opacity: 1;
+}
+
+
+
+.modal-overlay.show .modal-container {
+    transform: scale(1) translateY(0);
+}
+
+
+
+.modal-content {
+    padding: 2rem;
+}
+
+
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    justify-content: flex-end;
+}
+

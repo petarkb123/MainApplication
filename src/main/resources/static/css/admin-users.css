@@ -1,0 +1,218 @@
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.flash {
+    margin: 1rem 0 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: rgba(76, 175, 80, 0.15);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #c8ffd1;
+    font-weight: 600;
+}
+
+.flash-error {
+    background: rgba(244, 67, 54, 0.15);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    color: #ffc9c4;
+}
+
+.badge { display:inline-block; padding:6px 10px; border-radius:10px; font-weight:700; font-size:12px; letter-spacing:.3px; }
+
+.badge-admin { background: rgba(102,126,234,.18); color:#cbd1ff; border:1px solid rgba(102,126,234,.35); }
+
+.badge-user { background: rgba(128, 128, 128, .18); color:#d3d3d3; border:1px solid rgba(128, 128, 128, .35); }
+
+.badge-pro { background: rgba(102,126,234,.18); color:#cbd1ff; border:1px solid rgba(102,126,234,.35); }
+
+.badge-basic { background: rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.2); }
+
+.badge-ok { background: rgba(76,175,80,.18); color:#c8ffd1; border:1px solid rgba(76,175,80,.35); }
+
+.badge-off { background: rgba(244,67,54,.18); color:#ffc9c4; border:1px solid rgba(244,67,54,.35); }
+
+.badge-info { background: rgba(33,150,243,.18); color:#90caf9; border:1px solid rgba(33,150,243,.35); }
+
+.cell-user { display:flex; align-items:center; gap:8px; }
+
+.cell-user i { color:#cbd1ff; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(42, 42, 65, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+thead th {
+    text-align: left;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+tbody td {
+    padding: 14px 16px;
+    color: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: middle;
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+select {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 8px 10px;
+    margin-right: 8px;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+form[action$="activate-subscription"] button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+form[action$="activate-subscription"] button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+}
+
+form[action$="deactivate-subscription"] button,
+form[action$="deactivate-account"] button,
+form[action$="activate-account"] button,
+form[action$="resume-subscription"] button,
+form[action$="make-admin"] button,
+form[action$="remove-admin"] button,
+form[action$="toggle-subscription"] button {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+form[action$="deactivate-subscription"] button:hover,
+form[action$="deactivate-account"] button:hover,
+form[action$="activate-account"] button:hover,
+form[action$="resume-subscription"] button:hover,
+form[action$="make-admin"] button:hover,
+form[action$="remove-admin"] button:hover,
+form[action$="toggle-subscription"] button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+td form {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 8px;
+}
+
+.actions { display:flex; flex-wrap:wrap; gap:8px; }
+
+@media (max-width: 900px) {
+    .container { padding: 0 1rem; }
+    table { font-size: 0.9rem; }
+    thead { display: none; }
+    tbody tr { display: grid; grid-template-columns: 1fr; padding: 10px 0; }
+    tbody td { border: none; padding: 8px 0; }
+    tbody td::before { content: attr(data-label); display: block; font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+html {
+    scroll-behavior: smooth;
+    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%) fixed;
+    background-color: #1a1a30;
+    min-height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #ffffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-name {
+    font-weight: 600;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+

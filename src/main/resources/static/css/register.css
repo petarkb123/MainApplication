@@ -1,15 +1,9 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+
 
 html {
     scroll-behavior: smooth;
-    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%);
+    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%) fixed;
     background-color: #1a1a30;
-    background-attachment: fixed;
-    background-size: 100% 100%;
     min-height: 100%;
 }
 
@@ -17,10 +11,6 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
     color: #ffffff;
-    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%);
-    background-color: #1a1a30;
-    background-attachment: fixed;
-    background-size: 100% 100%;
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
@@ -34,9 +24,6 @@ body {
     height: 100%;
     z-index: -1;
     overflow: hidden;
-    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%);
-    background-attachment: fixed;
-    background-size: 100% 100%;
 }
 
 .bg-circle {
@@ -137,10 +124,14 @@ body {
     padding: 1.5rem 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     background: transparent;
-    backdrop-filter: none;
+    backdrop-filter: blur(20px);
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.navbar {
+    width: 100%;
 }
 
 .nav-container {
@@ -150,24 +141,56 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem;
 }
 
 .nav-logo {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    text-decoration: none;
+    color: white;
     font-size: 1.5rem;
     font-weight: 800;
-    color: white;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
+    transition: transform 0.3s ease;
 }
 
 .nav-logo:hover {
+    transform: translateY(-2px);
     color: white;
     text-decoration: none;
-    transform: translateY(-2px);
+}
+
+.nav-logo span {
+    font-weight: 800;
+}
+
+.nav-menu-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.nav-menu-indicator .nav-item {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    cursor: default;
+    transition: color 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.nav-separator {
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 0.25rem;
+}
+
+.nav-auth {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .logo-circle {
@@ -182,48 +205,24 @@ body {
     position: relative;
 }
 
-.logo-circle::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: inherit;
-    filter: blur(10px);
-    opacity: 0.5;
-    z-index: -1;
+.logo-circle i {
+    color: #ffffff;
+    font-size: 1.25rem;
+    line-height: 1;
 }
 
-.nav-menu-indicator {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
+.btn-glass {
+    background: rgba(255, 255, 255, 0.05);
     color: white;
-    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
 }
 
-.nav-menu-indicator .nav-item {
-    color: rgba(255, 255, 255, 0.8);
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    cursor: default;
-    transition: color 0.3s ease;
-    font-size: 0.95rem;
-}
-
-.nav-menu-indicator .nav-item:hover {
-    color: rgba(255, 255, 255, 1);
-}
-
-.nav-separator {
-    color: rgba(102, 126, 234, 0.5);
-    font-weight: 300;
-}
-
-.nav-auth {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .btn {
@@ -262,34 +261,9 @@ body {
     height: 300px;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6), 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.btn-glass {
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-}
-
-.btn-glass:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-}
-
-.btn-large {
-    padding: 1.125rem 2.5rem;
-    font-size: 1.05rem;
 }
 
 .main-content {
@@ -298,6 +272,9 @@ body {
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 150px);
+    margin-left: 0 !important;
+    max-width: 100%;
+    width: 100%;
 }
 
 .register-container {
@@ -712,93 +689,17 @@ body {
     }
 }
 
-@media (max-width: 1024px) {
-    .register-container {
-        max-width: 600px;
-    }
-}
-
-@media (max-width: 768px) {
-    .nav-container {
-        padding: 0 1.5rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .nav-menu-indicator {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-        gap: 1rem;
-    }
-
-    .nav-menu-indicator .nav-item {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
-    }
-
-    .main-content {
-        padding: 2rem 0;
-    }
-
-    .register-card {
-        padding: 2.5rem 2rem;
-    }
-
-    .register-icon {
-        width: 75px;
-        height: 75px;
-        font-size: 2rem;
-    }
-
-    .register-title {
-        font-size: 2rem;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-
-    .form-row .form-group {
-        margin-bottom: 1.75rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .register-container {
-        padding: 0 1rem;
-    }
-
-    .register-card {
-        padding: 2rem 1.5rem;
-        border-radius: 24px;
-    }
-
-    .register-icon {
-        width: 70px;
-        height: 70px;
-        font-size: 1.75rem;
-    }
-
-    .register-title {
-        font-size: 1.75rem;
-    }
-
-    .form-options {
-        margin-bottom: 1.5rem;
-    }
-}
-
-.btn:focus-visible {
-    outline: 3px solid rgba(102, 126, 234, 0.5);
-    outline-offset: 3px;
-}
-
 .form-input:focus-visible,
 .form-select:focus-visible {
     outline: 3px solid rgba(102, 126, 234, 0.5);
     outline-offset: 2px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn:active {
@@ -819,7 +720,7 @@ body {
         border-width: 2px;
     }
 
-    .register-card {
+.register-card {
         border-width: 2px;
     }
 }

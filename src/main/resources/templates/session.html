@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FitPower - Workout Session</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/component-layout.css}">
+    <link rel="stylesheet" th:href="@{/css/component-sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/component-buttons.css}">
+    <link rel="stylesheet" th:href="@{/css/component-forms.css}">
+    <link rel="stylesheet" th:href="@{/css/component-modals.css}">
+    <link rel="stylesheet" th:href="@{/css/component-headers.css}">
+    <link rel="stylesheet" th:href="@{/css/component-profile.css}">
+
+    <link rel="stylesheet" th:href="@{/css/session.css}">
+</head>
+<body>
+<div class="dashboard-container">
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>FitPower</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">MAIN MENU</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/exercises" class="nav-link">
+                            <i class="fas fa-dumbbell"></i>
+                            <span>Exercises</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="/workouts" class="nav-link">
+                            <i class="fas fa-history"></i>
+                            <span>Workouts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/templates" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Templates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/stats/weekly" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="nav-section-title">ACCOUNT</h3>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/subscription" class="nav-link">
+                            <i class="fas fa-crown"></i>
+                            <span>Subscription</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${isAdmin}">
+                        <a href="/admin/users" class="nav-link">
+                            <i class="fas fa-users-cog"></i>
+                            <span>Admin Panel</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" class="nav-link" style="background:none; border:none; width:100%; text-align:left;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <main class="main-content">
+        
+        <header class="top-header">
+            <div class="header-left">
+                <div class="user-profile mobile-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name" th:text="${username}">User</span>
+                    </div>
+                </div>
+                <h1 class="page-title">Workout Session</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-profile desktop-profile">
+                    <div class="profile-avatar avatar-preview">
+                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
+                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name" th:text="${username}">User</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="/settings" class="header-btn">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+                        <button type="submit" class="header-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </button>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        
+        <div class="dashboard-content">
+            
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <i class="fas fa-dumbbell"></i>
+                        Workout Session
+                    </h1>
+                    <p class="page-subtitle">Log your sets and track your progress</p>
+                    <div id="sessionTimer" style="margin-top:6px; color:#b8bdfd; font-weight:600;">
+                        <i class="fas fa-clock"></i>
+                        <span id="timerText">00:00:00</span>
+                    </div>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-success" onclick="finishWorkout()">
+                        <i class="fas fa-check"></i>
+                        Finish Workout
+                    </button>
+                </div>
+            </div>
+
+            
+            <div class="workout-session">
+                
+                <div class="add-exercise-section">
+                    <button class="btn btn-primary" onclick="openAddExerciseModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Exercise
+                    </button>
+                </div>
+
+                
+                <div class="exercises-list" id="exercisesList">
+                    
+                </div>
+
+                
+                <div class="empty-workout" id="emptyWorkout">
+                    <div class="empty-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <h3>No exercises added yet</h3>
+                    <p>Start by adding your first exercise to begin your workout!</p>
+                    <button class="btn btn-primary" onclick="openAddExerciseModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Your First Exercise
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="addExerciseModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">Add Exercise</h2>
+            <button class="modal-close" onclick="closeAddExerciseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-content">
+            <div class="form-group">
+                <label class="form-label">Select Exercise</label>
+                <select id="exerciseSelect" class="form-select">
+                    <option value="">Choose an exercise...</option>
+                    <optgroup label="My exercises" th:if="${not #lists.isEmpty(exercises)}">
+                        <option th:each="exercise : ${exercises}"
+                                th:if="${!exercise.builtIn}"
+                                th:value="${exercise.id}"
+                                th:text="${exercise.name}"></option>
+                    </optgroup>
+                    <optgroup label="Built-in" th:if="${not #lists.isEmpty(exercises)}">
+                        <option th:each="exercise : ${exercises}"
+                                th:if="${exercise.builtIn}"
+                                th:value="${exercise.id}"
+                                th:text="${exercise.name}"></option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeAddExerciseModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="addExerciseToWorkout()">Add Exercise</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    window.__pageDataSession = {
+    exercises: /*[[${exercises}]]*/ [],
+    sessionId: /*[[${sessionId}]]*/ null,
+    systemUserId: /*[[${T(project.fitnessapplicationexam.config.SystemDefault).SYSTEM_USER_ID}]]*/ null,
+    existingSets: /*[[${existingSets}]]*/ null,
+    startedAt: /*[[${startedAt}]]*/ null,
+    isPro: /*[[${isPro}]]*/ false
+    };
+</script>
+<script th:src="@{/js/session.js}"></script>
+</body>
+</html>
