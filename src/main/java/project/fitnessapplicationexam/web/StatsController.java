@@ -1,5 +1,8 @@
 package project.fitnessapplicationexam.web;
 
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,14 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.fitnessapplicationexam.analytics.client.AnalyticsClient;
-import project.fitnessapplicationexam.analytics.dto.CreateMilestoneRequest;
-import project.fitnessapplicationexam.analytics.dto.ExerciseVolumeTrendDto;
-import project.fitnessapplicationexam.analytics.dto.MilestoneDto;
-import project.fitnessapplicationexam.analytics.dto.PersonalRecordsDto;
-import project.fitnessapplicationexam.analytics.dto.ProgressiveOverloadDto;
-import project.fitnessapplicationexam.analytics.dto.RecomputeWeeklyRequest;
-import project.fitnessapplicationexam.analytics.dto.TrainingFrequencyResponse;
-import project.fitnessapplicationexam.analytics.dto.WeeklySummaryResponse;
+import project.fitnessapplicationexam.analytics.dto.*;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
@@ -27,13 +23,17 @@ import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import project.fitnessapplicationexam.config.ValidationConstants;
 
 @Controller
+@RequiredArgsConstructor
 public class StatsController {
 
+    private static final Logger log = LoggerFactory.getLogger(StatsController.class);
     private static final Set<String> AUTO_MILESTONE_TITLES = Set.of(
             "Centurion",
             "Dedicated (50 Sessions)",
@@ -47,18 +47,12 @@ public class StatsController {
     );
 
     private final AnalyticsClient analyticsClient;
-    private final UserService users;
-
-    public StatsController(AnalyticsClient analyticsClient, UserService users) {
-        this.analyticsClient = analyticsClient;
-        this.users = users;
-    }
+    private final UserService userService;
 
     @GetMapping("/stats/weekly")
-    public String weekly(@AuthenticationPrincipal UserDetails me,
-                         Model model) {
-        UUID userId = users.findByUsernameOrThrow(me.getUsername()).getId();
-        User u = users.findByUsernameOrThrow(me.getUsername());
+    public String weekly(@AuthenticationPrincipal UserDetails me, Model model) {
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        UUID userId = user.getId();
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
 
         LocalDate start = today.with(DayOfWeek.MONDAY);
@@ -67,29 +61,19 @@ public class StatsController {
         try {
             analyticsClient.recomputeWeeklyStats(userId, new RecomputeWeeklyRequest(start, end));
         } catch (Exception e) {
-            System.err.println("Failed to refresh weekly stats in analytics microservice: " + e.getMessage());
+            log.warn("Failed to refresh weekly stats in analytics microservice for user {}", userId, e);
         }
 
-        WeeklySummaryResponse summary = null;
-        try {
-            var response = analyticsClient.getWeeklyStats(userId, start, end);
-            summary = response != null ? response.getBody() : null;
-        } catch (Exception e) {
-            System.err.println("Error calling analytics microservice: " + e.getMessage());
-        }
-
+        WeeklySummaryResponse summary = fetchWeeklySummary(userId, start, end);
         if (summary == null) {
-            summary = new WeeklySummaryResponse(start, end, java.util.Collections.emptyList());
+            summary = new WeeklySummaryResponse(start, end, Collections.emptyList());
         }
 
+        addCommonAttributes(model, user);
         model.addAttribute("summary", summary);
         model.addAttribute("from", start);
         model.addAttribute("to", end);
-
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
-        model.addAttribute("isPro", u.getSubscriptionTier() == SubscriptionTier.PRO && u.isSubscriptionActive());
+        model.addAttribute("isPro", user.getSubscriptionTier() == SubscriptionTier.PRO && user.isSubscriptionActive());
         return "stats-weekly";
     }
 
@@ -102,15 +86,15 @@ public class StatsController {
         if (me == null) {
             return "redirect:/login";
         }
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        if (u.getSubscriptionTier() != SubscriptionTier.PRO || !u.isSubscriptionActive()) {
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        if (user.getSubscriptionTier() != SubscriptionTier.PRO || !user.isSubscriptionActive()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Advanced Analytics is only available for PRO subscribers. Please upgrade your subscription to access this feature.");
             return "redirect:/subscription";
         }
-        UUID userId = u.getId();
+        UUID userId = user.getId();
 
         LocalDate end = (to != null) ? to : LocalDate.now();
-        LocalDate start = (from != null) ? from : end.minusDays(90);
+        LocalDate start = (from != null) ? from : end.minusDays(ValidationConstants.DEFAULT_ANALYTICS_DAYS);
 
         TrainingFrequencyResponse trainingFrequency = null;
         List<ExerciseVolumeTrendDto> volumeTrends = null;
@@ -120,52 +104,24 @@ public class StatsController {
         boolean microserviceAvailable = true;
         
         try {
-            var freqResponse = analyticsClient.getTrainingFrequency(userId, start, end);
-            trainingFrequency = freqResponse != null ? freqResponse.getBody() : null;
-            
-            var trendsResponse = analyticsClient.getExerciseVolumeTrends(userId, start, end);
-            volumeTrends = trendsResponse != null ? trendsResponse.getBody() : null;
-            
-            var overloadResponse = analyticsClient.getProgressiveOverload(userId, start, end);
-            progressiveOverload = overloadResponse != null ? overloadResponse.getBody() : null;
-            
-            var prResponse = analyticsClient.getPersonalRecords(userId);
-            personalRecords = prResponse != null ? prResponse.getBody() : null;
-
-            var milestonesResponse = analyticsClient.getMilestones(userId);
-            milestoneDtos = milestonesResponse != null ? milestonesResponse.getBody() : null;
+            trainingFrequency = getBodyOrNull(analyticsClient.getTrainingFrequency(userId, start, end));
+            volumeTrends = getBodyOrNull(analyticsClient.getExerciseVolumeTrends(userId, start, end));
+            progressiveOverload = getBodyOrNull(analyticsClient.getProgressiveOverload(userId, start, end));
+            personalRecords = getBodyOrNull(analyticsClient.getPersonalRecords(userId));
+            milestoneDtos = getBodyOrNull(analyticsClient.getMilestones(userId));
         } catch (feign.FeignException e) {
             microserviceAvailable = false;
-            System.err.println("Error calling analytics microservice (FeignException): " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error calling analytics microservice (FeignException) for user {}", userId, e);
         } catch (Exception e) {
             microserviceAvailable = false;
-            System.err.println("Error calling analytics microservice: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error calling analytics microservice for user {}", userId, e);
         }
         
-        if (trainingFrequency == null) {
-            trainingFrequency = new TrainingFrequencyResponse(
-                    0, 
-                    0.0, 
-                    java.util.Collections.emptyMap(), 
-                    java.util.Collections.emptyList(), 
-                    0, 
-                    0.0
-            );
-        }
-        if (volumeTrends == null) {
-            volumeTrends = java.util.Collections.emptyList();
-        }
-        if (progressiveOverload == null) {
-            progressiveOverload = java.util.Collections.emptyList();
-        }
-        if (personalRecords == null) {
-            personalRecords = new PersonalRecordsDto(java.util.Collections.emptyList(), java.util.Collections.emptyList());
-        }
-        if (milestoneDtos == null) {
-            milestoneDtos = java.util.Collections.emptyList();
-        }
+        trainingFrequency = trainingFrequency != null ? trainingFrequency : createEmptyTrainingFrequency();
+        volumeTrends = volumeTrends != null ? volumeTrends : Collections.emptyList();
+        progressiveOverload = progressiveOverload != null ? progressiveOverload : Collections.emptyList();
+        personalRecords = personalRecords != null ? personalRecords : new PersonalRecordsDto(Collections.emptyList(), Collections.emptyList());
+        milestoneDtos = milestoneDtos != null ? milestoneDtos : Collections.emptyList();
 
         List<MilestoneDto> manageableMilestones = milestoneDtos.stream()
                 .filter(m -> !m.systemGenerated() && !AUTO_MILESTONE_TITLES.contains(m.title()))
@@ -173,9 +129,7 @@ public class StatsController {
         boolean hasSystemMilestones = milestoneDtos.stream()
                 .anyMatch(m -> m.systemGenerated() || AUTO_MILESTONE_TITLES.contains(m.title()));
 
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
+        addCommonAttributes(model, user);
         model.addAttribute("from", start);
         model.addAttribute("to", end);
         model.addAttribute("trainingFrequency", trainingFrequency);
@@ -199,12 +153,12 @@ public class StatsController {
                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate achievedDate,
                                   @RequestParam CreateMilestoneRequest.MilestoneType type,
                                   RedirectAttributes redirectAttributes) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        if (u.getSubscriptionTier() != SubscriptionTier.PRO || !u.isSubscriptionActive()) {
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        if (user.getSubscriptionTier() != SubscriptionTier.PRO || !user.isSubscriptionActive()) {
             redirectAttributes.addFlashAttribute("analyticsError", "You need an active PRO subscription to manage milestones.");
             return "redirect:/stats/advanced";
         }
-        UUID userId = u.getId();
+        UUID userId = user.getId();
 
         String trimmedTitle = title != null ? title.trim() : "";
         if (trimmedTitle.isEmpty()) {
@@ -232,12 +186,12 @@ public class StatsController {
     public String deleteMilestone(@AuthenticationPrincipal UserDetails me,
                                   @PathVariable UUID id,
                                   RedirectAttributes redirectAttributes) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        if (u.getSubscriptionTier() != SubscriptionTier.PRO || !u.isSubscriptionActive()) {
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        if (user.getSubscriptionTier() != SubscriptionTier.PRO || !user.isSubscriptionActive()) {
             redirectAttributes.addFlashAttribute("analyticsError", "You need an active PRO subscription to manage milestones.");
             return "redirect:/stats/advanced";
         }
-        UUID userId = u.getId();
+        UUID userId = user.getId();
         try {
             analyticsClient.deleteMilestone(userId, id);
             redirectAttributes.addFlashAttribute("analyticsMessage", "Milestone removed.");
@@ -245,5 +199,30 @@ public class StatsController {
             redirectAttributes.addFlashAttribute("analyticsError", "Failed to remove milestone: " + e.getMessage());
         }
         return "redirect:/stats/advanced";
+    }
+
+    private WeeklySummaryResponse fetchWeeklySummary(UUID userId, LocalDate start, LocalDate end) {
+        try {
+            var response = analyticsClient.getWeeklyStats(userId, start, end);
+            return response != null ? response.getBody() : null;
+        } catch (Exception e) {
+            log.error("Error calling analytics microservice for user {}", userId, e);
+            return null;
+        }
+    }
+
+    private <T> T getBodyOrNull(org.springframework.http.ResponseEntity<T> response) {
+        return response != null ? response.getBody() : null;
+    }
+
+    private TrainingFrequencyResponse createEmptyTrainingFrequency() {
+        return new TrainingFrequencyResponse(
+                0, 0.0, Collections.emptyMap(), Collections.emptyList(), 0, 0.0);
+    }
+
+    private void addCommonAttributes(Model model, User user) {
+        model.addAttribute("navAvatar", user.getProfilePicture());
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("isAdmin", user.getRole() == UserRole.ADMIN);
     }
 }

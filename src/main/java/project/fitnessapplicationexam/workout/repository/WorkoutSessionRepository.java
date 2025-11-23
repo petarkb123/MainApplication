@@ -15,6 +15,4 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     List<WorkoutSession> findTop50ByUserIdOrderByStartedAtDesc(UUID userId);
 
     List<WorkoutSession> findTop5ByUserIdOrderByStartedAtDesc(UUID userId);
-
-
 }

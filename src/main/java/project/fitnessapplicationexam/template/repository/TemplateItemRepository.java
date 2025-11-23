@@ -14,5 +14,4 @@ public interface TemplateItemRepository extends JpaRepository<TemplateItem, UUID
     void deleteByTemplateId(UUID templateId);
 
     void deleteByExerciseId(UUID exerciseId);
-
 }

@@ -11,52 +11,56 @@ import project.fitnessapplicationexam.user.repository.UserRepository;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
+import project.fitnessapplicationexam.config.ValidationConstants;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserSettingsService {
 
-    private final UserRepository users;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public User requireByUsername(String username) {
-        return users.findByUsername(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
     }
 
     @Transactional
     public void setAvatarUrl(UUID userId, String url) {
-        User u = users.findById(userId).orElseThrow();
-        String v = (url == null) ? "" : url.trim();
-        if (v.isEmpty()) throw new InvalidAvatarUrlException("Avatar URL is required.");
-        if (!(v.startsWith("http://") || v.startsWith("https://"))) {
+        User user = userRepository.findById(userId).orElseThrow();
+        String trimmedUrl = (url == null) ? "" : url.trim();
+        if (trimmedUrl.isEmpty()) {
+            throw new InvalidAvatarUrlException("Avatar URL is required.");
+        }
+        if (!trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://")) {
             throw new InvalidAvatarUrlException("Avatar URL must start with http:// or https://");
         }
-        u.setProfilePicture(v);
-        users.save(u);
+        user.setProfilePicture(trimmedUrl);
+        userRepository.save(user);
     }
 
     @Transactional
     public void removeAvatar(UUID userId) {
-        User u = users.findById(userId).orElseThrow();
-        u.setProfilePicture(null);
-        users.save(u);
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setProfilePicture(null);
+        userRepository.save(user);
     }
 
+    @Transactional
     public void changePassword(UUID userId, String currentRaw, String newRaw, String confirmRaw) {
         if (!Objects.equals(newRaw, confirmRaw)) {
             throw new IllegalArgumentException("Passwords do not match.");
         }
-        if (newRaw == null || newRaw.length() < 8) {
-            throw new IllegalArgumentException("New password must be at least 8 characters.");
+        if (newRaw == null || newRaw.length() < ValidationConstants.MIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException("New password must be at least " + ValidationConstants.MIN_PASSWORD_LENGTH + " characters.");
         }
-        User u = users.findById(userId).orElseThrow();
-        if (!passwordEncoder.matches(currentRaw, u.getPasswordHash())) {
+        User user = userRepository.findById(userId).orElseThrow();
+        if (!passwordEncoder.matches(currentRaw, user.getPasswordHash())) {
             throw new IllegalArgumentException("Current password is incorrect.");
         }
-        u.setPasswordHash(passwordEncoder.encode(newRaw));
-        users.save(u);
+        user.setPasswordHash(passwordEncoder.encode(newRaw));
+        userRepository.save(user);
     }
 }

@@ -7,15 +7,21 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import project.fitnessapplicationexam.exercise.model.Exercise;
+import project.fitnessapplicationexam.workout.model.SetGroupType;
 
 @Entity
-@Table(name="workout_sets",
-        indexes={
-                @Index(name="ix_wset_session", columnList="session_id"),
-                @Index(name="ix_wset_ex", columnList="exercise_id")
+@Table(name = "workout_sets",
+        indexes = {
+                @Index(name = "ix_wset_session", columnList = "session_id"),
+                @Index(name = "ix_wset_ex", columnList = "exercise_id")
         })
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@Builder(toBuilder = true) @EqualsAndHashCode(of="id")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@EqualsAndHashCode(of = "id")
 public class WorkoutSet {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,7 +39,7 @@ public class WorkoutSet {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false, insertable = false, updatable = false)
-    private project.fitnessapplicationexam.exercise.model.Exercise exercise;
+    private Exercise exercise;
 
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "exercise_id", nullable = false, columnDefinition = "char(36)")

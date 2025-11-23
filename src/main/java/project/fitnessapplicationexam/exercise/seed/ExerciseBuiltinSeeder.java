@@ -19,7 +19,7 @@ import project.fitnessapplicationexam.analytics.AnalyticsSyncService;
 @RequiredArgsConstructor
 public class ExerciseBuiltinSeeder implements ApplicationRunner {
 
-    private final ExerciseRepository repo;
+    private final ExerciseRepository exerciseRepository;
     private final AnalyticsSyncService analyticsSyncService;
 
     @Override
@@ -112,17 +112,20 @@ public class ExerciseBuiltinSeeder implements ApplicationRunner {
         upsert("Leg Press Calf Press", MuscleGroup.CALVES, Equipment.MACHINE, SYS);
     }
 
-    private void upsert(String name, MuscleGroup mg, Equipment eq, UUID owner) {
-        repo.findByNameIgnoreCaseAndOwnerUserId(name, owner).ifPresentOrElse(
-                e -> {}, 
+    private void upsert(String name, MuscleGroup muscleGroup, Equipment equipment, UUID owner) {
+        exerciseRepository.findByNameIgnoreCaseAndOwnerUserId(name, owner).ifPresentOrElse(
+                existing -> {
+                    // Exercise already exists, no action needed
+                },
                 () -> {
-                    Exercise ex = new Exercise();
-                    ex.setOwnerUserId(owner);
-                    ex.setName(name);
-                    ex.setPrimaryMuscle(mg);
-                    ex.setEquipment(eq);
-                    ex.setCreatedOn(LocalDateTime.now());
-                    Exercise saved = repo.save(ex);
+                    Exercise exercise = Exercise.builder()
+                            .ownerUserId(owner)
+                            .name(name)
+                            .primaryMuscle(muscleGroup)
+                            .equipment(equipment)
+                            .createdOn(LocalDateTime.now())
+                            .build();
+                    Exercise saved = exerciseRepository.save(exercise);
                     analyticsSyncService.syncExercise(saved);
                 }
         );

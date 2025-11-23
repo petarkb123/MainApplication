@@ -9,57 +9,62 @@ import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.repository.UserRepository;
 
 import java.util.UUID;
+import project.fitnessapplicationexam.config.ValidationConstants;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository repo;
-    private final PasswordEncoder encoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User getOrThrow(UUID id) {
-        return repo.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public User findByIdOrThrow(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
-
-    public User findByIdOrThrow(UUID id) { return getOrThrow(id); }
 
     @Transactional(readOnly = true)
     public User findByUsernameOrThrow(String username) {
-        return repo.findByUsername(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
     }
 
-
     @Transactional
     public User register(String username, String rawPwd, String email, String first, String last) {
-        if (repo.existsByUsername(username)) throw new IllegalArgumentException("Username taken");
-        if (repo.existsByEmail(email)) throw new IllegalArgumentException("Email in use");
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username taken");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email in use");
+        }
 
-        User u = User.builder()
+        User user = User.builder()
                 .username(username)
                 .email(email)
                 .firstName(first)
                 .lastName(last)
-                .passwordHash(encoder.encode(rawPwd))
+                .passwordHash(passwordEncoder.encode(rawPwd))
                 .role(UserRole.USER)
                 .build();
 
-        return repo.save(u);
+        return userRepository.save(user);
     }
 
     @Transactional
     public void changeUsername(UUID userId, String newUsername) {
-        String uname = newUsername == null ? "" : newUsername.trim();
-        if (uname.isBlank()) throw new IllegalArgumentException("Username is required.");
-        if (uname.length() > 64) throw new IllegalArgumentException("Username too long.");
-        if (repo.existsByUsernameIgnoreCase(uname))
+        String username = newUsername == null ? "" : newUsername.trim();
+        if (username.isBlank()) {
+            throw new IllegalArgumentException("Username is required.");
+        }
+        if (username.length() > ValidationConstants.MAX_USERNAME_LENGTH) {
+            throw new IllegalArgumentException("Username too long.");
+        }
+        if (userRepository.existsByUsernameIgnoreCase(username)) {
             throw new IllegalArgumentException("That username is already taken.");
+        }
 
-        User user = repo.findById(userId).orElseThrow();
-        user.setUsername(uname);
-        repo.save(user);
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setUsername(username);
+        userRepository.save(user);
     }
-
-
-
 }

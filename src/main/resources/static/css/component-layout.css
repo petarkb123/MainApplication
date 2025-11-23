@@ -5,26 +5,9 @@
     box-sizing: border-box;
 }
 
-
-
 html {
-    background: radial-gradient(ellipse at top, #2a2a42 0%, #1a1a30 50%);
-    background-color: #1a1a30;
-    background-attachment: fixed;
-    background-size: 100% 100%;
     min-height: 100%;
 }
-
-
-
-.main-content {
-    flex: 1;
-    margin-left: 280px;
-    padding: 2rem;
-    min-height: 100vh;
-}
-
-
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -35,6 +18,14 @@ body {
     color: #ffffff;
     line-height: 1.6;
     overflow-x: hidden;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 2rem;
+    min-height: 100vh;
 }
 
 

@@ -19,44 +19,51 @@ import project.fitnessapplicationexam.template.form.TemplateForm;
 import project.fitnessapplicationexam.template.form.TemplateItemForm;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import project.fitnessapplicationexam.config.ValidationConstants;
 
 @Service
 @RequiredArgsConstructor
 public class TemplateService {
 
-    private final WorkoutTemplateRepository templateRepo;
-    private final TemplateItemRepository itemRepo;
-    private final ExerciseRepository exerciseRepo;
+    private final WorkoutTemplateRepository workoutTemplateRepository;
+    private final TemplateItemRepository templateItemRepository;
+    private final ExerciseRepository exerciseRepository;
 
     @Transactional(readOnly = true)
     @Cacheable(value = "templates", key = "#owner")
     public List<WorkoutTemplate> list(UUID owner) {
-        return templateRepo.findAllByOwnerUserIdOrderByCreatedOnDesc(owner);
+        return workoutTemplateRepository.findAllByOwnerUserIdOrderByCreatedOnDesc(owner);
     }
-    
+
     @Transactional(readOnly = true)
     @Cacheable(value = "exercises", key = "#userId")
     public List<Exercise> getAvailableExercises(UUID userId) {
         List<UUID> owners = List.of(SystemDefault.SYSTEM_USER_ID, userId);
-        return exerciseRepo.findAllByOwnerUserIdInOrderByNameAsc(owners);
+        return exerciseRepository.findAllByOwnerUserIdInOrderByNameAsc(owners);
     }
-    
+
     @Transactional(readOnly = true)
     public Optional<WorkoutTemplate> findByIdAndOwner(UUID templateId, UUID ownerId) {
-        return templateRepo.findByIdAndOwnerUserId(templateId, ownerId);
+        return workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId);
     }
-    
+
     @Transactional(readOnly = true)
     public List<TemplateItem> getTemplateItems(UUID templateId) {
-        return itemRepo.findAllByTemplateIdOrderByPositionAsc(templateId);
+        return templateItemRepository.findAllByTemplateIdOrderByPositionAsc(templateId);
     }
-    
+
     @Transactional(readOnly = true)
     public Map<UUID, Exercise> getExercisesByIds(List<UUID> exerciseIds) {
-        return exerciseRepo.findAllById(exerciseIds).stream()
-                .collect(Collectors.toMap(Exercise::getId, e -> e));
+        return exerciseRepository.findAllById(exerciseIds).stream()
+                .collect(Collectors.toMap(Exercise::getId, exercise -> exercise));
     }
 
     @Transactional
@@ -66,11 +73,11 @@ public class TemplateService {
         if (name.isBlank()) {
             throw new IllegalArgumentException("Template name is required.");
         }
-        if (templateRepo.existsByOwnerUserIdAndNameIgnoreCase(ownerUserId, name)) {
+        if (workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerUserId, name)) {
             throw new IllegalArgumentException("You already have a template with that name.");
         }
 
-        WorkoutTemplate tpl = templateRepo.save(
+        WorkoutTemplate template = workoutTemplateRepository.save(
                 WorkoutTemplate.builder()
                         .ownerUserId(ownerUserId)
                         .name(name)
@@ -80,24 +87,25 @@ public class TemplateService {
         List<TemplateItemForm> rows = new ArrayList<>(
                 Optional.ofNullable(form.getItems()).orElse(List.of())
         );
-        rows.removeIf(r -> r == null || r.getExerciseId() == null);
+        rows.removeIf(row -> row == null || row.getExerciseId() == null);
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("Add at least one exercise.");
         }
 
         List<TemplateItem> items = new ArrayList<>(rows.size());
-        for (TemplateItemForm r : rows) {
-             exerciseRepo.findById(r.getExerciseId())
-                    .filter(ex -> ex.getOwnerUserId().equals(ownerUserId)
-                            || ex.getOwnerUserId().equals(SystemDefault.SYSTEM_USER_ID))
+        for (TemplateItemForm row : rows) {
+            exerciseRepository.findById(row.getExerciseId())
+                    .filter(exercise -> exercise.getOwnerUserId().equals(ownerUserId)
+                            || exercise.getOwnerUserId().equals(SystemDefault.SYSTEM_USER_ID))
                     .orElseThrow(() -> new IllegalArgumentException("Exercise not found or not allowed."));
 
-            int sets = (r.getSets() == null) ? 3 : Math.max(1, Math.min(20, r.getSets()));
-            Integer order = (r.getOrderIndex() == null) ? Integer.MAX_VALUE : Math.max(0, r.getOrderIndex());
+            int sets = (row.getSets() == null) ? ValidationConstants.DEFAULT_TEMPLATE_SETS 
+                    : Math.max(ValidationConstants.MIN_TEMPLATE_SETS, Math.min(ValidationConstants.MAX_TEMPLATE_SETS, row.getSets()));
+            Integer order = (row.getOrderIndex() == null) ? Integer.MAX_VALUE : Math.max(0, row.getOrderIndex());
 
             items.add(TemplateItem.builder()
-                    .templateId(tpl.getId())
-                    .exerciseId(r.getExerciseId())
+                    .templateId(template.getId())
+                    .exerciseId(row.getExerciseId())
                     .targetSets(sets)
                     .position(order)
                     .build());
@@ -108,125 +116,95 @@ public class TemplateService {
             items.get(i).setPosition(i);
         }
 
-        itemRepo.saveAll(items);
-        return tpl.getId();
+        templateItemRepository.saveAll(items);
+        return template.getId();
     }
-    
+
     @Transactional
     @CacheEvict(value = {"templates", "exercises"}, allEntries = true)
     public WorkoutTemplate createTemplate(UUID ownerId, String name, List<TemplateItemData> items) {
-        WorkoutTemplate tpl = WorkoutTemplate.builder()
+        WorkoutTemplate template = WorkoutTemplate.builder()
                 .ownerUserId(ownerId)
                 .name(name.trim())
                 .createdOn(LocalDateTime.now())
                 .build();
-        templateRepo.save(tpl);
-        
+        workoutTemplateRepository.save(template);
+
         if (items != null && !items.isEmpty()) {
-            List<UUID> exerciseIds = items.stream()
-                    .map(TemplateItemData::exerciseId)
-                    .filter(java.util.Objects::nonNull)
-                    .distinct()
-                    .toList();
-            
-            Map<UUID, Exercise> exerciseMap = exerciseRepo.findAllById(exerciseIds).stream()
-                    .collect(Collectors.toMap(Exercise::getId, e -> e));
-            
-            ArrayList<TemplateItem> toSave = new ArrayList<>();
-            for (TemplateItemData item : items) {
-                if (item.exerciseId() == null) {
-                    continue;
-                }
-                
-                Exercise exercise = exerciseMap.get(item.exerciseId());
-                if (exercise == null) {
-                    throw new IllegalArgumentException("Exercise not found: " + item.exerciseId());
-                }
-                
-                if (!exercise.getOwnerUserId().equals(ownerId)
-                        && !exercise.getOwnerUserId().equals(SystemDefault.SYSTEM_USER_ID)) {
-                    throw new IllegalArgumentException("Exercise not accessible: " + item.exerciseId());
-                }
-                
-                toSave.add(TemplateItem.builder()
-                        .templateId(tpl.getId())
-                        .exercise(exercise)
-                        .targetSets(item.targetSets())
-                        .position(item.position())
-                        .groupId(item.groupId())
-                        .groupType(item.groupType())
-                        .groupOrder(item.groupOrder())
-                        .setNumber(item.setNumber())
-                        .build());
-            }
-            itemRepo.saveAll(toSave);
+            List<TemplateItem> templateItems = buildTemplateItems(items, template.getId(), ownerId);
+            templateItemRepository.saveAll(templateItems);
         }
-        
-        return tpl;
+
+        return template;
     }
-    
+
     @Transactional
     @CacheEvict(value = {"templates", "exercises"}, allEntries = true)
     public void deleteTemplate(UUID templateId, UUID ownerId) {
-        templateRepo.findByIdAndOwnerUserId(templateId, ownerId).ifPresent(tpl -> {
-            itemRepo.deleteByTemplateId(templateId);
-            templateRepo.delete(tpl);
+        workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId).ifPresent(template -> {
+            templateItemRepository.deleteByTemplateId(templateId);
+            workoutTemplateRepository.delete(template);
         });
     }
-    
+
     @Transactional
     @CacheEvict(value = {"templates", "exercises"}, allEntries = true)
     public void updateTemplate(UUID templateId, UUID ownerId, String newName, List<TemplateItemData> items) {
-        WorkoutTemplate tpl = templateRepo.findByIdAndOwnerUserId(templateId, ownerId)
+        WorkoutTemplate template = workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        
-        tpl.setName(newName.trim());
-        templateRepo.save(tpl);
-        
-        itemRepo.deleteByTemplateId(templateId);
-        
+
+        template.setName(newName.trim());
+        workoutTemplateRepository.save(template);
+
+        templateItemRepository.deleteByTemplateId(templateId);
+
         if (items != null && !items.isEmpty()) {
-            List<UUID> exerciseIds = items.stream()
-                    .map(TemplateItemData::exerciseId)
-                    .filter(java.util.Objects::nonNull)
-                    .distinct()
-                    .toList();
-            
-            Map<UUID, Exercise> exerciseMap = exerciseRepo.findAllById(exerciseIds).stream()
-                    .collect(Collectors.toMap(Exercise::getId, e -> e));
-            
-            ArrayList<TemplateItem> toSave = new ArrayList<>();
-            for (TemplateItemData item : items) {
-                if (item.exerciseId() == null) {
-                    continue;
-                }
-                
-                Exercise exercise = exerciseMap.get(item.exerciseId());
-                if (exercise == null) {
-                    throw new IllegalArgumentException("Exercise not found: " + item.exerciseId());
-                }
-                
-                if (!exercise.getOwnerUserId().equals(ownerId)
-                        && !exercise.getOwnerUserId().equals(SystemDefault.SYSTEM_USER_ID)) {
-                    throw new IllegalArgumentException("Exercise not accessible: " + item.exerciseId());
-                }
-                
-                toSave.add(TemplateItem.builder()
-                        .templateId(templateId)
-                        .exercise(exercise)
-                        .targetSets(item.targetSets())
-                        .position(item.position())
-                        .groupId(item.groupId())
-                        .groupType(item.groupType())
-                        .groupOrder(item.groupOrder())
-                        .setNumber(item.setNumber())
-                        .build());
-            }
-            itemRepo.saveAll(toSave);
+            List<TemplateItem> templateItems = buildTemplateItems(items, templateId, ownerId);
+            templateItemRepository.saveAll(templateItems);
         }
     }
-    
+
     public boolean isNameTaken(UUID ownerId, String name) {
-        return templateRepo.existsByOwnerUserIdAndNameIgnoreCase(ownerId, name);
+        return workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerId, name);
+    }
+
+    private List<TemplateItem> buildTemplateItems(List<TemplateItemData> items, UUID templateId, UUID ownerId) {
+        List<UUID> exerciseIds = items.stream()
+                .map(TemplateItemData::exerciseId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<UUID, Exercise> exerciseMap = exerciseRepository.findAllById(exerciseIds).stream()
+                .collect(Collectors.toMap(Exercise::getId, exercise -> exercise));
+        
+        List<TemplateItem> templateItems = new ArrayList<>();
+        for (TemplateItemData item : items) {
+            if (item.exerciseId() == null) {
+                continue;
+            }
+            
+            Exercise exercise = exerciseMap.get(item.exerciseId());
+            if (exercise == null) {
+                throw new IllegalArgumentException("Exercise not found: " + item.exerciseId());
+            }
+            
+            if (!exercise.getOwnerUserId().equals(ownerId)
+                    && !exercise.getOwnerUserId().equals(SystemDefault.SYSTEM_USER_ID)) {
+                throw new IllegalArgumentException("Exercise not accessible: " + item.exerciseId());
+            }
+            
+            templateItems.add(TemplateItem.builder()
+                    .templateId(templateId)
+                    .exercise(exercise)
+                    .targetSets(item.targetSets())
+                    .position(item.position())
+                    .groupId(item.groupId())
+                    .groupType(item.groupType())
+                    .groupOrder(item.groupOrder())
+                    .setNumber(item.setNumber())
+                    .build());
+        }
+        return templateItems;
     }
 }

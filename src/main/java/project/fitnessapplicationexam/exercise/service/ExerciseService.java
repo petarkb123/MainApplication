@@ -19,42 +19,49 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ExerciseService {
-    private final ExerciseRepository repo;
-    private final TemplateItemRepository templateItemRepo;
-    private final WorkoutSetRepository workoutSetRepo;
-    private final AnalyticsSyncService analyticsSyncService;
+
     private static final Logger log = LoggerFactory.getLogger(ExerciseService.class);
+    private final ExerciseRepository exerciseRepository;
+    private final TemplateItemRepository templateItemRepository;
+    private final WorkoutSetRepository workoutSetRepository;
+    private final AnalyticsSyncService analyticsSyncService;
 
     @Cacheable(value = "exercises", key = "#owner")
-    public List<Exercise> byOwner(UUID owner){ 
+    public List<Exercise> byOwner(UUID owner) {
         log.debug("Fetching exercises for owner {}", owner);
-        return repo.findAllByOwnerUserId(owner); 
+        return exerciseRepository.findAllByOwnerUserId(owner);
     }
 
-    @Transactional 
-    @CacheEvict(value = "exercises", key = "#e.ownerUserId")
-    public Exercise create(Exercise e){
-        log.info("Creating exercise '{}' for user {}", e.getName(), e.getOwnerUserId());
-        Exercise saved = repo.save(e);
+    @Transactional
+    @CacheEvict(value = "exercises", key = "#exercise.ownerUserId")
+    public Exercise create(Exercise exercise) {
+        log.info("Creating exercise '{}' for user {}", exercise.getName(), exercise.getOwnerUserId());
+        Exercise saved = exerciseRepository.save(exercise);
         analyticsSyncService.syncExercise(saved);
         return saved;
     }
 
     @Cacheable(value = "exercise", key = "#id")
-    public Exercise get(UUID id){ 
+    public Exercise get(UUID id) {
         log.debug("Fetching exercise {}", id);
-        return repo.findById(id).orElseThrow(); 
+        return exerciseRepository.findById(id).orElseThrow();
     }
 
-    @Transactional 
+    public List<Exercise> findAllByOwnerUserIdInOrderByNameAsc(List<UUID> ownerIds) {
+        return exerciseRepository.findAllByOwnerUserIdInOrderByNameAsc(ownerIds);
+    }
+
+    public java.util.Optional<Exercise> findByIdAndOwnerUserId(UUID id, UUID ownerId) {
+        return exerciseRepository.findByIdAndOwnerUserId(id, ownerId);
+    }
+
+    @Transactional
     @CacheEvict(value = {"exercises", "exercise", "templates"}, allEntries = true)
-    public void delete(UUID id){
+    public void delete(UUID id) {
         log.warn("Deleting exercise {} and related records", id);
-        templateItemRepo.deleteByExerciseId(id);
-        workoutSetRepo.deleteByExerciseId(id);
-        repo.deleteById(id);
+        templateItemRepository.deleteByExerciseId(id);
+        workoutSetRepository.deleteByExerciseId(id);
+        exerciseRepository.deleteById(id);
         analyticsSyncService.deleteExercise(id);
     }
-
-
 }

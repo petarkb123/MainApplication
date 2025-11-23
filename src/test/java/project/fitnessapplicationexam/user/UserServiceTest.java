@@ -22,112 +22,112 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
 	@Mock
-	private UserRepository repo;
+	private UserRepository userRepository;
 
 	@Mock
-	private PasswordEncoder encoder;
+	private PasswordEncoder passwordEncoder;
 
 	@InjectMocks
-	private UserService service;
+	private UserService userService;
 
 	@Test
-	void register_success() {
-		when(repo.existsByUsername("john")).thenReturn(false);
-		when(repo.existsByEmail("j@e.com")).thenReturn(false);
-		when(encoder.encode("pwd")).thenReturn("enc");
-		when(repo.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+	void register_createsUser() {
+		when(userRepository.existsByUsername("john")).thenReturn(false);
+		when(userRepository.existsByEmail("j@e.com")).thenReturn(false);
+		when(passwordEncoder.encode("pwd")).thenReturn("enc");
+		when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-		User u = service.register("john", "pwd", "j@e.com", "John", "D");
-		assertEquals("john", u.getUsername());
-		assertEquals(UserRole.USER, u.getRole());
-		assertEquals("enc", u.getPasswordHash());
+		User user = userService.register("john", "pwd", "j@e.com", "John", "D");
+		assertEquals("john", user.getUsername());
+		assertEquals(UserRole.USER, user.getRole());
+		assertEquals("enc", user.getPasswordHash());
 	}
 
 	@Test
 	void register_usernameTaken_throwsException() {
-		when(repo.existsByUsername("john")).thenReturn(true);
+		when(userRepository.existsByUsername("john")).thenReturn(true);
 
-		assertThrows(IllegalArgumentException.class, () -> service.register("john", "pwd", "j@e.com", "John", "D"));
+		assertThrows(IllegalArgumentException.class, () -> userService.register("john", "pwd", "j@e.com", "John", "D"));
 	}
 
 	@Test
 	void register_emailInUse_throwsException() {
-		when(repo.existsByUsername("john")).thenReturn(false);
-		when(repo.existsByEmail("j@e.com")).thenReturn(true);
+		when(userRepository.existsByUsername("john")).thenReturn(false);
+		when(userRepository.existsByEmail("j@e.com")).thenReturn(true);
 
-		assertThrows(IllegalArgumentException.class, () -> service.register("john", "pwd", "j@e.com", "John", "D"));
+		assertThrows(IllegalArgumentException.class, () -> userService.register("john", "pwd", "j@e.com", "John", "D"));
 	}
 
 	@Test
-	void changeUsername_happyPath() {
+	void changeUsername_updatesUsername() {
 		UUID id = UUID.randomUUID();
-		User u = User.builder().id(id).username("old").build();
-		when(repo.existsByUsernameIgnoreCase("new")).thenReturn(false);
-		when(repo.findById(id)).thenReturn(Optional.of(u));
+		User user = User.builder().id(id).username("old").build();
+		when(userRepository.existsByUsernameIgnoreCase("new")).thenReturn(false);
+		when(userRepository.findById(id)).thenReturn(Optional.of(user));
 
-		service.changeUsername(id, "new");
-		assertEquals("new", u.getUsername());
-		verify(repo).save(u);
+		userService.changeUsername(id, "new");
+		assertEquals("new", user.getUsername());
+		verify(userRepository).save(user);
 	}
 
 	@Test
-	void changeUsername_rejectsBlank() {
+	void changeUsername_blank_throwsException() {
 		UUID id = UUID.randomUUID();
-		assertThrows(IllegalArgumentException.class, () -> service.changeUsername(id, " "));
+		assertThrows(IllegalArgumentException.class, () -> userService.changeUsername(id, " "));
 	}
 
 	@Test
-	void changeUsername_rejectsNull() {
+	void changeUsername_null_throwsException() {
 		UUID id = UUID.randomUUID();
-		assertThrows(IllegalArgumentException.class, () -> service.changeUsername(id, null));
+		assertThrows(IllegalArgumentException.class, () -> userService.changeUsername(id, null));
 	}
 
 	@Test
-	void changeUsername_rejectsTooLong() {
+	void changeUsername_tooLong_throwsException() {
 		UUID id = UUID.randomUUID();
 		String tooLong = "a".repeat(65);
-		assertThrows(IllegalArgumentException.class, () -> service.changeUsername(id, tooLong));
+		assertThrows(IllegalArgumentException.class, () -> userService.changeUsername(id, tooLong));
 	}
 
 	@Test
-	void changeUsername_rejectsDuplicate() {
+	void changeUsername_duplicate_throwsException() {
 		UUID id = UUID.randomUUID();
-		when(repo.existsByUsernameIgnoreCase("taken")).thenReturn(true);
+		when(userRepository.existsByUsernameIgnoreCase("taken")).thenReturn(true);
 
-		assertThrows(IllegalArgumentException.class, () -> service.changeUsername(id, "taken"));
+		assertThrows(IllegalArgumentException.class, () -> userService.changeUsername(id, "taken"));
 	}
 
 	@Test
-	void getOrThrow_found_returnsUser() {
+	void findByIdOrThrow_found_returnsUser() {
 		UUID id = UUID.randomUUID();
 		User user = User.builder().id(id).build();
-		when(repo.findById(id)).thenReturn(Optional.of(user));
+		when(userRepository.findById(id)).thenReturn(Optional.of(user));
 
-		User result = service.getOrThrow(id);
+		User result = userService.findByIdOrThrow(id);
 		assertEquals(user, result);
 	}
 
 	@Test
-	void getOrThrow_notFound_throwsException() {
+	void findByIdOrThrow_notFound_throwsException() {
 		UUID id = UUID.randomUUID();
-		when(repo.findById(id)).thenReturn(Optional.empty());
+		when(userRepository.findById(id)).thenReturn(Optional.empty());
 
-		assertThrows(IllegalArgumentException.class, () -> service.getOrThrow(id));
+		assertThrows(IllegalArgumentException.class, () -> userService.findByIdOrThrow(id));
 	}
 
 	@Test
 	void findByUsernameOrThrow_found_returnsUser() {
 		User user = User.builder().username("john").build();
-		when(repo.findByUsername("john")).thenReturn(Optional.of(user));
+		when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
 
-		User result = service.findByUsernameOrThrow("john");
+		User result = userService.findByUsernameOrThrow("john");
 		assertEquals(user, result);
 	}
 
 	@Test
 	void findByUsernameOrThrow_notFound_throwsException() {
-		when(repo.findByUsername("john")).thenReturn(Optional.empty());
+		when(userRepository.findByUsername("john")).thenReturn(Optional.empty());
 
-		assertThrows(IllegalArgumentException.class, () -> service.findByUsernameOrThrow("john"));
+		assertThrows(IllegalArgumentException.class, () -> userService.findByUsernameOrThrow("john"));
 	}
 }

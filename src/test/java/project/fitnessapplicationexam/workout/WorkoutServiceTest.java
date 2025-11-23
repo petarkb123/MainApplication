@@ -31,17 +31,17 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class WorkoutServiceTest {
 
-	@Mock private WorkoutSessionRepository sessionRepo;
-	@Mock private WorkoutSetRepository setRepo;
-	@Mock private ExerciseRepository exerciseRepo;
+	@Mock private WorkoutSessionRepository workoutSessionRepository;
+	@Mock private WorkoutSetRepository workoutSetRepository;
+	@Mock private ExerciseRepository exerciseRepositorysitory;
 	@Mock private AnalyticsSyncService analyticsSyncService;
-	@InjectMocks private WorkoutService service;
+	@InjectMocks private WorkoutService workoutService;
 
 	@Test
 	void start_createsSession() {
 		UUID user = UUID.randomUUID();
-		when(sessionRepo.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
-		WorkoutSession s = service.start(user);
+		when(workoutSessionRepository.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
+		WorkoutSession s = workoutService.start(user);
 		assertEquals(user, s.getUserId());
 	}
 
@@ -52,12 +52,12 @@ class WorkoutServiceTest {
 		WorkoutSession s = new WorkoutSession();
 		s.setId(id);
 		s.setUserId(user);
-		when(sessionRepo.findById(id)).thenReturn(Optional.of(s));
-		when(sessionRepo.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
-		when(setRepo.findAllBySessionId(id)).thenReturn(List.of());
-		service.finishSession(id, user);
+		when(workoutSessionRepository.findById(id)).thenReturn(Optional.of(s));
+		when(workoutSessionRepository.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(workoutSetRepository.findAllBySessionId(id)).thenReturn(List.of());
+		workoutService.finishSession(id, user);
 		assertEquals(SessionStatus.FINISHED, s.getStatus());
-		verify(sessionRepo).save(s);
+		verify(workoutSessionRepository).save(s);
 		verify(analyticsSyncService).syncWorkout(eq(s), anyList());
 	}
 
@@ -68,61 +68,61 @@ class WorkoutServiceTest {
 		WorkoutSession s = new WorkoutSession();
 		s.setId(id);
 		s.setUserId(UUID.randomUUID());
-		when(sessionRepo.findById(id)).thenReturn(Optional.of(s));
+		when(workoutSessionRepository.findById(id)).thenReturn(Optional.of(s));
 		assertThrows(ResponseStatusException.class, () -> service.deleteSession(id, user));
 	}
 
 	@Test
 	void history_returnsSessions() {
 		UUID userId = UUID.randomUUID();
-		when(sessionRepo.findAllByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
+		when(workoutSessionRepository.findAllByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
 
-		List<WorkoutSession> result = service.history(userId);
+		List<WorkoutSession> result = workoutService.history(userId);
 		assertNotNull(result);
 	}
 
 	@Test
 	void getRecentSessions_limit5_returnsTop5() {
 		UUID userId = UUID.randomUUID();
-		when(sessionRepo.findTop5ByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
+		when(workoutSessionRepository.findTop5ByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
 
-		List<WorkoutSession> result = service.getRecentSessions(userId, 5);
+		List<WorkoutSession> result = workoutService.getRecentSessions(userId, 5);
 		assertNotNull(result);
 	}
 
 	@Test
 	void getRecentSessions_limit50_returnsTop50() {
 		UUID userId = UUID.randomUUID();
-		when(sessionRepo.findTop50ByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
+		when(workoutSessionRepository.findTop50ByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
 
-		List<WorkoutSession> result = service.getRecentSessions(userId, 50);
+		List<WorkoutSession> result = workoutService.getRecentSessions(userId, 50);
 		assertNotNull(result);
 	}
 
 	@Test
 	void getRecentSessions_otherLimit_returnsAll() {
 		UUID userId = UUID.randomUUID();
-		when(sessionRepo.findAllByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
+		when(workoutSessionRepository.findAllByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
 
-		List<WorkoutSession> result = service.getRecentSessions(userId, 10);
+		List<WorkoutSession> result = workoutService.getRecentSessions(userId, 10);
 		assertNotNull(result);
 	}
 
 	@Test
 	void getSessionSets_returnsSets() {
 		UUID sessionId = UUID.randomUUID();
-		when(setRepo.findAllBySessionIdOrderByExerciseOrderAscIdAsc(sessionId)).thenReturn(List.of());
+		when(workoutSetRepository.findAllBySessionIdOrderByExerciseOrderAscIdAsc(sessionId)).thenReturn(List.of());
 
-		List<WorkoutSet> result = service.getSessionSets(sessionId);
+		List<WorkoutSet> result = workoutService.getSessionSets(sessionId);
 		assertNotNull(result);
 	}
 
 	@Test
 	void getAvailableExercises_returnsExercises() {
 		UUID userId = UUID.randomUUID();
-		when(exerciseRepo.findAllByOwnerUserIdInOrderByNameAsc(anyList())).thenReturn(List.of());
+		when(exerciseRepository.findAllByOwnerUserIdInOrderByNameAsc(anyList())).thenReturn(List.of());
 
-		List<Exercise> result = service.getAvailableExercises(userId);
+		List<Exercise> result = workoutService.getAvailableExercises(userId);
 		assertNotNull(result);
 	}
 
@@ -130,18 +130,18 @@ class WorkoutServiceTest {
 	void getExercisesByIds_returnsMap() {
 		UUID exerciseId = UUID.randomUUID();
 		Exercise exercise = Exercise.builder().id(exerciseId).build();
-		when(exerciseRepo.findAllById(anyList())).thenReturn(List.of(exercise));
+		when(exerciseRepository.findAllById(anyList())).thenReturn(List.of(exercise));
 
-		Map<UUID, Exercise> result = service.getExercisesByIds(List.of(exerciseId));
+		Map<UUID, Exercise> result = workoutService.getExercisesByIds(List.of(exerciseId));
 		assertEquals(1, result.size());
 	}
 
 	@Test
 	void findExerciseById_returnsExercise() {
 		UUID exerciseId = UUID.randomUUID();
-		when(exerciseRepo.findById(exerciseId)).thenReturn(Optional.empty());
+		when(exerciseRepository.findById(exerciseId)).thenReturn(Optional.empty());
 
-		Optional<Exercise> result = service.findExerciseById(exerciseId);
+		Optional<Exercise> result = workoutService.findExerciseById(exerciseId);
 		assertTrue(result.isEmpty());
 	}
 
@@ -153,10 +153,10 @@ class WorkoutServiceTest {
 		s.setId(id);
 		s.setUserId(user);
 		s.setFinishedAt(LocalDateTime.now());
-		when(sessionRepo.findById(id)).thenReturn(Optional.of(s));
+		when(workoutSessionRepository.findById(id)).thenReturn(Optional.of(s));
 
-		service.finishSession(id, user);
-		verify(sessionRepo, never()).save(any());
+		workoutService.finishSession(id, user);
+		verify(workoutSessionRepository, never()).save(any());
 	}
 
 	@Test
@@ -168,9 +168,9 @@ class WorkoutServiceTest {
 		WorkoutSession session = new WorkoutSession();
 		session.setId(sessionId);
 		session.setUserId(userId);
-		when(sessionRepo.findById(sessionId)).thenReturn(Optional.of(session));
-		when(sessionRepo.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
-		when(setRepo.findAllBySessionId(sessionId)).thenReturn(List.of());
+		when(workoutSessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+		when(workoutSessionRepository.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(workoutSetRepository.findAllBySessionId(sessionId)).thenReturn(List.of());
 		
 		Exercise exercise = Exercise.builder()
 				.id(exerciseId)
@@ -179,14 +179,14 @@ class WorkoutServiceTest {
 				.equipment(Equipment.BARBELL)
 				.primaryMuscle(MuscleGroup.CHEST)
 				.build();
-		when(exerciseRepo.findById(exerciseId)).thenReturn(Optional.of(exercise));
+		when(exerciseRepository.findById(exerciseId)).thenReturn(Optional.of(exercise));
 		
 		SetData setData = new SetData(100.0, 10, null, null, null, null);
 		ExerciseSetData exData = new ExerciseSetData(exerciseId, List.of(setData));
 		
-		service.finishSessionWithSets(sessionId, userId, List.of(exData));
+		workoutService.finishSessionWithSets(sessionId, userId, List.of(exData));
 		
-		verify(setRepo).saveAll(anyList());
+		verify(workoutSetRepository).saveAll(anyList());
 		assertEquals(SessionStatus.FINISHED, session.getStatus());
 		verify(analyticsSyncService).syncWorkout(eq(session), anyList());
 	}
@@ -195,10 +195,10 @@ class WorkoutServiceTest {
 	void finishSessionWithSets_notFound_throwsException() {
 		UUID sessionId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
-		when(sessionRepo.findById(sessionId)).thenReturn(Optional.empty());
+		when(workoutSessionRepository.findById(sessionId)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class, () -> 
-				service.finishSessionWithSets(sessionId, userId, List.of()));
+				workoutService.finishSessionWithSets(sessionId, userId, List.of()));
 	}
 
 	@Test
@@ -210,10 +210,10 @@ class WorkoutServiceTest {
 		WorkoutSession session = new WorkoutSession();
 		session.setId(sessionId);
 		session.setUserId(otherUserId);
-		when(sessionRepo.findById(sessionId)).thenReturn(Optional.of(session));
+		when(workoutSessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
 
 		assertThrows(ResponseStatusException.class, () -> 
-				service.finishSessionWithSets(sessionId, userId, List.of()));
+				workoutService.finishSessionWithSets(sessionId, userId, List.of()));
 	}
 
 	@Test
@@ -224,11 +224,11 @@ class WorkoutServiceTest {
 		WorkoutSession session = new WorkoutSession();
 		session.setId(sessionId);
 		session.setUserId(userId);
-		when(sessionRepo.findById(sessionId)).thenReturn(Optional.of(session));
-		when(sessionRepo.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
-		when(setRepo.findAllBySessionId(sessionId)).thenReturn(List.of());
+		when(workoutSessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+		when(workoutSessionRepository.save(any(WorkoutSession.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(workoutSetRepository.findAllBySessionId(sessionId)).thenReturn(List.of());
 
-		service.finishSessionWithSets(sessionId, userId, List.of());
+		workoutService.finishSessionWithSets(sessionId, userId, List.of());
 		assertEquals(SessionStatus.FINISHED, session.getStatus());
 		verify(analyticsSyncService).syncWorkout(eq(session), anyList());
 	}
@@ -241,11 +241,11 @@ class WorkoutServiceTest {
 		WorkoutSession session = new WorkoutSession();
 		session.setId(sessionId);
 		session.setUserId(userId);
-		when(sessionRepo.findById(sessionId)).thenReturn(Optional.of(session));
+		when(workoutSessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
 
-		service.deleteSession(sessionId, userId);
-		verify(setRepo).deleteBySessionId(sessionId);
-		verify(sessionRepo).deleteById(sessionId);
+		workoutService.deleteSession(sessionId, userId);
+		verify(workoutSetRepository).deleteBySessionId(sessionId);
+		verify(workoutSessionRepository).deleteById(sessionId);
 		verify(analyticsSyncService).deleteWorkout(sessionId);
 	}
 
@@ -253,7 +253,7 @@ class WorkoutServiceTest {
 	void deleteSession_notFound_throwsException() {
 		UUID sessionId = UUID.randomUUID();
 		UUID userId = UUID.randomUUID();
-		when(sessionRepo.findById(sessionId)).thenReturn(Optional.empty());
+		when(workoutSessionRepository.findById(sessionId)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class, () -> service.deleteSession(sessionId, userId));
 	}

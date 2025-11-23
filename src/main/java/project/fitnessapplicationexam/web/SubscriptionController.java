@@ -24,17 +24,17 @@ import java.util.UUID;
 public class SubscriptionController {
 
     private final UserSubscriptionService subscriptions;
-    private final UserService users;
+    private final UserService userService;
 
     @GetMapping
     public String view(@AuthenticationPrincipal UserDetails me, Model model) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("currentTier", u.getSubscriptionTier());
-        model.addAttribute("subscriptionActive", u.isSubscriptionActive());
-        model.addAttribute("nextRenewalAt", u.getNextRenewalAt());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        model.addAttribute("navAvatar", user.getProfilePicture());
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("currentTier", user.getSubscriptionTier());
+        model.addAttribute("subscriptionActive", user.isSubscriptionActive());
+        model.addAttribute("nextRenewalAt", user.getNextRenewalAt());
+        model.addAttribute("isAdmin", user.getRole() == UserRole.ADMIN);
         return "subscription";
     }
 
@@ -42,7 +42,7 @@ public class SubscriptionController {
     public String select(@AuthenticationPrincipal UserDetails me,
                          @RequestParam("tier") SubscriptionTier tier,
                          RedirectAttributes ra) {
-        UUID id = users.findByUsernameOrThrow(me.getUsername()).getId();
+        UUID id = userService.findByUsernameOrThrow(me.getUsername()).getId();
         if (tier == SubscriptionTier.BASIC) {
             subscriptions.activateBasic(id);
             ra.addFlashAttribute("successMessage", "You are now on the Basic plan.");
@@ -53,5 +53,4 @@ public class SubscriptionController {
         return "redirect:/subscription";
     }
 }
-
 

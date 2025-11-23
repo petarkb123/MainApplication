@@ -30,40 +30,28 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleEmptyTemplate(EmptyTemplateException ex) {
         log.warn("Empty/invalid template: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "Invalid Template");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(body);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid Template", ex.getMessage());
     }
 
     @ExceptionHandler(TemplateNameConflictException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleTemplateNameConflict(TemplateNameConflictException ex) {
         log.warn("Template name conflict: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "Template Name Conflict");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(body);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Template Name Conflict", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidAvatarUrlException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleInvalidAvatar(InvalidAvatarUrlException ex) {
         log.warn("Invalid avatar URL: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "Invalid Avatar URL");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(body);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid Avatar URL", ex.getMessage());
     }
 
     @ExceptionHandler(WorkoutAlreadyFinishedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleAlreadyFinished(WorkoutAlreadyFinishedException ex) {
         log.warn("Workout already finished: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "Bad Request");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(body);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -83,29 +71,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "Constraint Violation");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(body);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Constraint Violation", ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "Forbidden");
-        body.put("message", "You are not allowed to perform this operation.");
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+        return buildErrorResponse(HttpStatus.FORBIDDEN, "Forbidden", "You are not allowed to perform this operation.");
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public ResponseEntity<Map<String, Object>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+        return buildErrorResponse(HttpStatus.METHOD_NOT_ALLOWED, "Method Not Allowed", ex.getMessage());
+    }
+
+    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String error, String message) {
         Map<String, Object> body = new HashMap<>();
-        body.put("error", "Method Not Allowed");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(body);
+        body.put("error", error);
+        body.put("message", message);
+        return ResponseEntity.status(status).body(body);
     }
 }
-
 

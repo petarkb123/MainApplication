@@ -23,40 +23,43 @@ import java.util.UUID;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
-    private final UserRepository users;
-    private final UserSubscriptionService subs;
+    private final UserRepository userRepository;
+    private final UserSubscriptionService userSubscriptionService;
     private final UserService userService;
 
     @GetMapping("/users")
     public String users(@AuthenticationPrincipal UserDetails me, Model model) {
-        User u = userService.findByUsernameOrThrow(me.getUsername());
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
-        model.addAttribute("currentUserId", u.getId()); 
-        model.addAttribute("users", users.findAll());
+        User currentUser = userService.findByUsernameOrThrow(me.getUsername());
+        model.addAttribute("navAvatar", currentUser.getProfilePicture());
+        model.addAttribute("username", currentUser.getUsername());
+        model.addAttribute("isAdmin", currentUser.getRole() == UserRole.ADMIN);
+        model.addAttribute("currentUserId", currentUser.getId());
+        model.addAttribute("users", userRepository.findAll());
         return "admin-users";
     }
 
     @PostMapping("/users/{id}/deactivate-account")
-    public String deactivateAccount(@PathVariable UUID id, 
+    public String deactivateAccount(@PathVariable UUID id,
                                    @AuthenticationPrincipal UserDetails me,
                                    RedirectAttributes ra) {
-        User currentUser = userService.findByUsernameOrThrow(me.getUsername());
-        
-        if (currentUser.getId().equals(id)) {
-            ra.addFlashAttribute("errorMessage", "You cannot deactivate your own account.");
+        if (isSelfOperation(id, me, ra, "You cannot deactivate your own account.")) {
             return "redirect:/admin/users";
         }
         
-        users.findById(id).ifPresent(u -> { u.setActive(false); users.save(u); });
+        userRepository.findById(id).ifPresent(user -> {
+            user.setActive(false);
+            userRepository.save(user);
+        });
         ra.addFlashAttribute("successMessage", "Account deactivated.");
         return "redirect:/admin/users";
     }
 
     @PostMapping("/users/{id}/activate-account")
     public String activateAccount(@PathVariable UUID id, RedirectAttributes ra) {
-        users.findById(id).ifPresent(u -> { u.setActive(true); users.save(u); });
+        userRepository.findById(id).ifPresent(user -> {
+            user.setActive(true);
+            userRepository.save(user);
+        });
         ra.addFlashAttribute("successMessage", "Account activated.");
         return "redirect:/admin/users";
     }
@@ -65,14 +68,11 @@ public class AdminController {
     public String deactivateSubscription(@PathVariable UUID id,
                                         @AuthenticationPrincipal UserDetails me,
                                         RedirectAttributes ra) {
-        User currentUser = userService.findByUsernameOrThrow(me.getUsername());
-        
-        if (currentUser.getId().equals(id)) {
-            ra.addFlashAttribute("errorMessage", "You cannot deactivate your own subscription.");
+        if (isSelfOperation(id, me, ra, "You cannot deactivate your own subscription.")) {
             return "redirect:/admin/users";
         }
         
-        subs.deactivateSubscription(id);
+        userSubscriptionService.deactivateSubscription(id);
         ra.addFlashAttribute("successMessage", "Subscription deactivated.");
         return "redirect:/admin/users";
     }
@@ -81,20 +81,16 @@ public class AdminController {
     public String toggleSubscription(@PathVariable UUID id,
                                    @AuthenticationPrincipal UserDetails me,
                                    RedirectAttributes ra) {
-        User currentUser = userService.findByUsernameOrThrow(me.getUsername());
-        
-        if (currentUser.getId().equals(id)) {
-            ra.addFlashAttribute("errorMessage", "You cannot modify your own subscription from here. Please use the subscription page.");
+        if (isSelfOperation(id, me, ra, "You cannot modify your own subscription from here. Please use the subscription page.")) {
             return "redirect:/admin/users";
         }
         
-        User user = users.findById(id).orElseThrow();
-        
+        User user = userRepository.findById(id).orElseThrow();
         if (user.getSubscriptionTier() == SubscriptionTier.PRO) {
-            subs.activateBasic(id);
+            userSubscriptionService.activateBasic(id);
             ra.addFlashAttribute("successMessage", "Subscription changed to BASIC.");
         } else {
-            subs.activatePro(id);
+            userSubscriptionService.activatePro(id);
             ra.addFlashAttribute("successMessage", "Subscription changed to PRO.");
         }
         
@@ -105,16 +101,13 @@ public class AdminController {
     public String resumeSubscription(@PathVariable UUID id,
                                     @AuthenticationPrincipal UserDetails me,
                                     RedirectAttributes ra) {
-        User currentUser = userService.findByUsernameOrThrow(me.getUsername());
-        
-        if (currentUser.getId().equals(id)) {
-            ra.addFlashAttribute("errorMessage", "You cannot resume your own subscription from here. Please use the subscription page.");
+        if (isSelfOperation(id, me, ra, "You cannot resume your own subscription from here. Please use the subscription page.")) {
             return "redirect:/admin/users";
         }
         
-        User user = users.findById(id).orElseThrow();
+        User user = userRepository.findById(id).orElseThrow();
         if (user.getSubscriptionTier() == SubscriptionTier.PRO) {
-            subs.activatePro(id);
+            userSubscriptionService.activatePro(id);
             ra.addFlashAttribute("successMessage", "Pro subscription resumed.");
         } else {
             ra.addFlashAttribute("errorMessage", "Only Pro subscriptions can be resumed.");
@@ -127,15 +120,14 @@ public class AdminController {
                            @AuthenticationPrincipal UserDetails me,
                            RedirectAttributes ra) {
         User currentUser = userService.findByUsernameOrThrow(me.getUsername());
-
         if (currentUser.getId().equals(id)) {
             ra.addFlashAttribute("errorMessage", "You are already an admin.");
             return "redirect:/admin/users";
         }
 
-        users.findById(id).ifPresent(u -> {
-            u.setRole(UserRole.ADMIN);
-            users.save(u);
+        userRepository.findById(id).ifPresent(user -> {
+            user.setRole(UserRole.ADMIN);
+            userRepository.save(user);
         });
         ra.addFlashAttribute("successMessage", "User promoted to admin.");
         return "redirect:/admin/users";
@@ -146,19 +138,26 @@ public class AdminController {
                             @AuthenticationPrincipal UserDetails me,
                             RedirectAttributes ra) {
         User currentUser = userService.findByUsernameOrThrow(me.getUsername());
-        
         if (currentUser.getId().equals(id)) {
             ra.addFlashAttribute("errorMessage", "You cannot remove admin status from yourself.");
             return "redirect:/admin/users";
         }
         
-        users.findById(id).ifPresent(u -> {
-            u.setRole(UserRole.USER);
-            users.save(u);
+        userRepository.findById(id).ifPresent(user -> {
+            user.setRole(UserRole.USER);
+            userRepository.save(user);
         });
         ra.addFlashAttribute("successMessage", "Admin status removed.");
         return "redirect:/admin/users";
     }
-}
 
+    private boolean isSelfOperation(UUID targetId, UserDetails me, RedirectAttributes ra, String errorMessage) {
+        User currentUser = userService.findByUsernameOrThrow(me.getUsername());
+        if (currentUser.getId().equals(targetId)) {
+            ra.addFlashAttribute("errorMessage", errorMessage);
+            return true;
+        }
+        return false;
+    }
+}
 

@@ -36,24 +36,22 @@ import java.util.UUID;
 public class TemplateController {
 
     private final TemplateService templateService;
-    private final UserService users;
+    private final UserService userService;
 
     @GetMapping
     public String list(@AuthenticationPrincipal UserDetails me, Model model) {
-        UUID userId = users.findByUsernameOrThrow(me.getUsername()).getId();
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        UUID userId = user.getId();
+        addCommonAttributes(model, user);
         model.addAttribute("templates", templateService.list(userId));
         return "templates";
     }
 
     @GetMapping("/create")
     public String createForm(@AuthenticationPrincipal UserDetails me, Model model) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
+        User user = userService.findByUsernameOrThrow(me.getUsername());
 
-        List<ExerciseOptionDto> options = templateService.getAvailableExercises(u.getId())
+        List<ExerciseOptionDto> options = templateService.getAvailableExercises(user.getId())
                 .stream()
                 .map(ex -> new ExerciseOptionDto(
                         ex.getId(),
@@ -63,12 +61,10 @@ public class TemplateController {
                 ))
                 .toList();
 
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
-        model.addAttribute("isPro", u.getSubscriptionTier() == SubscriptionTier.PRO && u.isSubscriptionActive());
+        addCommonAttributes(model, user);
+        model.addAttribute("isPro", user.getSubscriptionTier() == SubscriptionTier.PRO && user.isSubscriptionActive());
         model.addAttribute("form", new TemplateForm());
-        model.addAttribute("exercises", options);   // <-- used by the page JS
+        model.addAttribute("exercises", options);
         return "create";
     }
 
@@ -80,7 +76,7 @@ public class TemplateController {
                          Model model,
                          RedirectAttributes ra) {
 
-        UUID userId = users.findByUsernameOrThrow(me.getUsername()).getId();
+        UUID userId = userService.findByUsernameOrThrow(me.getUsername()).getId();
 
         if (binding.hasErrors()) {
             model.addAttribute("exercises", templateService.getAvailableExercises(userId));
@@ -121,7 +117,7 @@ public class TemplateController {
     public String delete(@PathVariable UUID id,
                          @AuthenticationPrincipal UserDetails me,
                          RedirectAttributes ra) {
-        UUID ownerId = users.findByUsernameOrThrow(me.getUsername()).getId();
+        UUID ownerId = userService.findByUsernameOrThrow(me.getUsername()).getId();
 
         templateService.deleteTemplate(id, ownerId);
 
@@ -136,8 +132,8 @@ public class TemplateController {
     public String editForm(@PathVariable UUID id,
                            @AuthenticationPrincipal UserDetails me,
                            Model model) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        UUID ownerId = u.getId();
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        UUID ownerId = user.getId();
 
         WorkoutTemplate tpl = templateService.findByIdAndOwner(id, ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -171,13 +167,11 @@ public class TemplateController {
         TemplateForm form = new TemplateForm();
         form.setName(tpl.getName());
 
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
-        model.addAttribute("isPro", u.getSubscriptionTier() == SubscriptionTier.PRO && u.isSubscriptionActive());
+        addCommonAttributes(model, user);
+        model.addAttribute("isPro", user.getSubscriptionTier() == SubscriptionTier.PRO && user.isSubscriptionActive());
         model.addAttribute("template", tpl);
         model.addAttribute("form", form);
-        model.addAttribute("items", itemsDto);      
+        model.addAttribute("items", itemsDto);
         model.addAttribute("exercises", options);
 
         return "edit";
@@ -192,7 +186,7 @@ public class TemplateController {
                            Model model,
                            RedirectAttributes ra) {
 
-        UUID ownerId = users.findByUsernameOrThrow(me.getUsername()).getId();
+        UUID ownerId = userService.findByUsernameOrThrow(me.getUsername()).getId();
         Optional<WorkoutTemplate> tplOpt = templateService.findByIdAndOwner(id, ownerId);
         if (tplOpt.isEmpty()) {
             ra.addFlashAttribute("error", "Template not found or not accessible.");
@@ -200,9 +194,8 @@ public class TemplateController {
         }
         WorkoutTemplate tpl = tplOpt.get();
 
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        addCommonAttributes(model, user);
         model.addAttribute("template", tpl);
 
         if (binding.hasErrors()) return "edit";
@@ -249,7 +242,7 @@ public class TemplateController {
     @ResponseBody
     public List<ExerciseSummary> templateExercises(@PathVariable UUID id,
                                                    @AuthenticationPrincipal UserDetails me) {
-        UUID ownerId = users.findByUsernameOrThrow(me.getUsername()).getId();
+        UUID ownerId = userService.findByUsernameOrThrow(me.getUsername()).getId();
 
         WorkoutTemplate tpl = templateService.findByIdAndOwner(id, ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -268,5 +261,11 @@ public class TemplateController {
             }
         }
         return out;
+    }
+
+    private void addCommonAttributes(Model model, User user) {
+        model.addAttribute("navAvatar", user.getProfilePicture());
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("isAdmin", user.getRole() == UserRole.ADMIN);
     }
 }

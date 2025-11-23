@@ -11,52 +11,53 @@ import project.fitnessapplicationexam.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import project.fitnessapplicationexam.config.ValidationConstants;
 
 @Service
 @RequiredArgsConstructor
 public class UserSubscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(UserSubscriptionService.class);
-    private final UserRepository users;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public SubscriptionTier getTier(UUID userId) {
-        return users.findById(userId).map(User::getSubscriptionTier)
+        return userRepository.findById(userId).map(User::getSubscriptionTier)
                 .orElse(SubscriptionTier.BASIC);
     }
 
     @Transactional
     public void activateBasic(UUID userId) {
-        User u = users.findById(userId).orElseThrow();
-        u.setSubscriptionTier(SubscriptionTier.BASIC);
-        u.setSubscriptionActive(true);
-        u.setNextRenewalAt(null);
-        users.save(u);
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setSubscriptionTier(SubscriptionTier.BASIC);
+        user.setSubscriptionActive(true);
+        user.setNextRenewalAt(null);
+        userRepository.save(user);
         log.info("User {} switched to BASIC", userId);
     }
 
     @Transactional
     public void activatePro(UUID userId) {
-        User u = users.findById(userId).orElseThrow();
-        u.setSubscriptionTier(SubscriptionTier.PRO);
-        u.setSubscriptionActive(true);
-        u.setNextRenewalAt(LocalDateTime.now().plusDays(30));
-        users.save(u);
-        log.info("User {} switched to PRO; next renewal {}", userId, u.getNextRenewalAt());
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setSubscriptionTier(SubscriptionTier.PRO);
+        user.setSubscriptionActive(true);
+        user.setNextRenewalAt(LocalDateTime.now().plusDays(ValidationConstants.SUBSCRIPTION_RENEWAL_DAYS));
+        userRepository.save(user);
+        log.info("User {} switched to PRO; next renewal {}", userId, user.getNextRenewalAt());
     }
 
     @Transactional
     public void deactivateSubscription(UUID userId) {
-        User u = users.findById(userId).orElseThrow();
-        u.setSubscriptionActive(false);
-        users.save(u);
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setSubscriptionActive(false);
+        userRepository.save(user);
         log.info("User {} subscription deactivated", userId);
     }
 
     @Transactional(readOnly = true)
     public boolean isPro(UUID userId) {
-        User u = users.findById(userId).orElse(null);
-        return u != null && u.isSubscriptionActive() && u.getSubscriptionTier() == SubscriptionTier.PRO;
+        User user = userRepository.findById(userId).orElse(null);
+        return user != null && user.isSubscriptionActive() && user.getSubscriptionTier() == SubscriptionTier.PRO;
     }
 }
 

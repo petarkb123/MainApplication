@@ -31,14 +31,14 @@ class ExerciseControllerIntegrationTest {
 	private MockMvc mockMvc;
 
 	@SuppressWarnings("removal") @MockBean private ExerciseService exerciseService;
-	@SuppressWarnings("removal") @MockBean private UserService users;
+	@SuppressWarnings("removal") @MockBean private UserService userService;
 	@SuppressWarnings("removal") @MockBean private ExerciseRepository exerciseRepository;
 
 	@Test
 	@WithMockUser
-	void testGetExercisesEndpoint() throws Exception {
-		User u = User.builder().id(UUID.randomUUID()).username("u").role(UserRole.USER).build();
-		when(users.findByUsernameOrThrow(any())).thenReturn(u);
+	void getExercises_returnsOk() throws Exception {
+		User user = User.builder().id(UUID.randomUUID()).username("testuser").role(UserRole.USER).build();
+		when(userService.findByUsernameOrThrow(any())).thenReturn(user);
 		when(exerciseRepository.findAllByOwnerUserIdInOrderByNameAsc(any())).thenReturn(List.of());
 
 		CsrfToken token = new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token");

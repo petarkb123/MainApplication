@@ -15,8 +15,12 @@ import java.util.UUID;
                 @Index(name = "ix_users_username", columnList = "username", unique = true),
                 @Index(name = "ix_users_email", columnList = "email", unique = true)
         })
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@Builder(toBuilder = true) @EqualsAndHashCode(of = "id")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@EqualsAndHashCode(of = "id")
 public class User {
 
     @Id
@@ -71,5 +75,4 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
-
 }

@@ -11,8 +11,12 @@ import java.util.UUID;
 @Entity
 @Table(name = "exercises",
         indexes = @Index(name = "ix_ex_owner", columnList = "owner_user_id"))
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@Builder(toBuilder = true) @EqualsAndHashCode(of = "id")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@EqualsAndHashCode(of = "id")
 public class Exercise {
 
     @Id
@@ -40,6 +44,4 @@ public class Exercise {
     @Column(name = "created_on", nullable = false)
     @Builder.Default
     private LocalDateTime createdOn = LocalDateTime.now();
-
-
 }

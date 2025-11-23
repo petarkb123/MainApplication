@@ -13,7 +13,6 @@ import project.fitnessapplicationexam.exercise.dto.ExerciseRow;
 import project.fitnessapplicationexam.exercise.model.Equipment;
 import project.fitnessapplicationexam.exercise.model.Exercise;
 import project.fitnessapplicationexam.exercise.model.MuscleGroup;
-import project.fitnessapplicationexam.exercise.repository.ExerciseRepository;
 import project.fitnessapplicationexam.exercise.service.ExerciseService;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.user.model.User;
@@ -29,16 +28,15 @@ import java.util.UUID;
 @Validated
 public class ExerciseController {
     private final ExerciseService exerciseService;
-    private final UserService users;
-    private final ExerciseRepository exerciseRepo;
+    private final UserService userService;
 
     @GetMapping
     public String list(@AuthenticationPrincipal UserDetails me, Model model) {
-        UUID ownerId = users.findByUsernameOrThrow(me.getUsername()).getId();
-        User u = users.findByUsernameOrThrow(me.getUsername());
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        UUID ownerId = user.getId();
         List<UUID> owners = List.of(SystemDefault.SYSTEM_USER_ID, ownerId);
 
-        List<ExerciseRow> rows = exerciseRepo.findAllByOwnerUserIdInOrderByNameAsc(owners)
+        List<ExerciseRow> rows = exerciseService.findAllByOwnerUserIdInOrderByNameAsc(owners)
                 .stream()
                 .map(ex -> new ExerciseRow(
                         ex.getId(),
@@ -50,9 +48,9 @@ public class ExerciseController {
                 .toList();
 
         model.addAttribute("exercises", rows);
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
+        model.addAttribute("navAvatar", user.getProfilePicture());
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("isAdmin", user.getRole() == UserRole.ADMIN);
         model.addAttribute("form", new ExerciseForm());
         model.addAttribute("muscles", MuscleGroup.values());
         model.addAttribute("equipments", Equipment.values());
@@ -62,7 +60,7 @@ public class ExerciseController {
     @PostMapping({"", "/", "/create", "/add"})
     public String create(@AuthenticationPrincipal UserDetails me,
                          @ModelAttribute @Validated ExerciseForm form) {
-        UUID ownerId = users.findByUsernameOrThrow(me.getUsername()).getId();
+        UUID ownerId = userService.findByUsernameOrThrow(me.getUsername()).getId();
         Exercise exercise = Exercise.builder()
                 .ownerUserId(ownerId)
                 .name(form.getName())
@@ -76,8 +74,8 @@ public class ExerciseController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable UUID id, @AuthenticationPrincipal UserDetails me) {
-        UUID ownerId = users.findByUsernameOrThrow(me.getUsername()).getId();
-        exerciseRepo.findByIdAndOwnerUserId(id, ownerId).ifPresent(exercise -> {
+        UUID ownerId = userService.findByUsernameOrThrow(me.getUsername()).getId();
+        exerciseService.findByIdAndOwnerUserId(id, ownerId).ifPresent(exercise -> {
             exerciseService.delete(id);
         });
         return "redirect:/exercises";

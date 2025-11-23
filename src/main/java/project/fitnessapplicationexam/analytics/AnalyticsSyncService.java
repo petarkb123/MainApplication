@@ -37,13 +37,11 @@ public class AnalyticsSyncService {
                 exercise.getEquipment(),
                 exercise.getCreatedOn()
         );
-        try {
-            analyticsClient.syncExercises(Collections.singletonList(request));
-        } catch (FeignException ex) {
-            log.warn("Failed to sync exercise {} with analytics service: {}", exercise.getId(), ex.getMessage());
-        } catch (Exception ex) {
-            log.warn("Unexpected error while syncing exercise {}: {}", exercise.getId(), ex.getMessage());
-        }
+        executeWithErrorHandling(
+                () -> analyticsClient.syncExercises(Collections.singletonList(request)),
+                "sync exercise",
+                exercise.getId()
+        );
     }
 
     public void deleteExercise(UUID exerciseId) {
@@ -77,13 +75,11 @@ public class AnalyticsSyncService {
                 session.getStatus() != null ? session.getStatus() : SessionStatus.IN_PROGRESS,
                 payload
         );
-        try {
-            analyticsClient.syncWorkout(request);
-        } catch (FeignException ex) {
-            log.warn("Failed to sync workout {} with analytics service: {}", session.getId(), ex.getMessage());
-        } catch (Exception ex) {
-            log.warn("Unexpected error while syncing workout {}: {}", session.getId(), ex.getMessage());
-        }
+        executeWithErrorHandling(
+                () -> analyticsClient.syncWorkout(request),
+                "sync workout",
+                session.getId()
+        );
     }
 
     public void deleteWorkout(UUID sessionId) {
@@ -98,6 +94,16 @@ public class AnalyticsSyncService {
             log.warn("Failed to delete workout {} from analytics service: {}", sessionId, ex.getMessage());
         } catch (Exception ex) {
             log.warn("Unexpected error while deleting workout {} from analytics service: {}", sessionId, ex.getMessage());
+        }
+    }
+
+    private void executeWithErrorHandling(Runnable operation, String operationName, UUID entityId) {
+        try {
+            operation.run();
+        } catch (FeignException ex) {
+            log.warn("Failed to {} {} with analytics service: {}", operationName, entityId, ex.getMessage());
+        } catch (Exception ex) {
+            log.warn("Unexpected error while {} {}: {}", operationName, entityId, ex.getMessage());
         }
     }
 

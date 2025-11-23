@@ -43,7 +43,7 @@ class ExerciseServiceTest {
     private ExerciseService exerciseService;
 
     @Test
-    void testCreateExercise() {
+    void create_savesExercise() {
         Exercise exercise = Exercise.builder()
                 .name("Bench Press")
                 .primaryMuscle(MuscleGroup.CHEST)
@@ -63,7 +63,7 @@ class ExerciseServiceTest {
     }
 
     @Test
-    void testGetExercise() {
+    void get_returnsExercise() {
         UUID exerciseId = UUID.randomUUID();
         Exercise exercise = Exercise.builder()
                 .id(exerciseId)
@@ -80,7 +80,7 @@ class ExerciseServiceTest {
     }
 
     @Test
-    void testDeleteExercise() {
+    void delete_removesExercise() {
         UUID exerciseId = UUID.randomUUID();
         exerciseService.delete(exerciseId);
 
@@ -91,7 +91,7 @@ class ExerciseServiceTest {
     }
 
     @Test
-    void testByOwner() {
+    void byOwner_returnsExercises() {
         UUID ownerId = UUID.randomUUID();
         List<Exercise> exercises = Arrays.asList(
                 Exercise.builder().name("Exercise 1").build(),

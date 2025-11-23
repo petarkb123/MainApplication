@@ -11,8 +11,11 @@ import project.fitnessapplicationexam.user.form.RegisterForm;
 @Validated
 public class AuthController {
 
-    private final UserService users;
-    public AuthController(UserService users){ this.users = users; }
+    private final UserService userService;
+
+    public AuthController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
@@ -22,12 +25,16 @@ public class AuthController {
         }
         return "login";
     }
-    @GetMapping("/register") public String registerForm(){ return "register"; }
+    @GetMapping("/register")
+    public String registerForm() {
+        return "register";
+    }
 
     @PostMapping("/register")
-    public String register(@ModelAttribute RegisterForm f, Model model) {
+    public String register(@ModelAttribute RegisterForm form, Model model) {
         try {
-            users.register(f.getUsername(), f.getPassword(), f.getEmail(), f.getFirstName(), f.getLastName());
+            userService.register(form.getUsername(), form.getPassword(), form.getEmail(),
+                    form.getFirstName(), form.getLastName());
             model.addAttribute("msg", "Registration successful. Please log in.");
             return "login";
         } catch (IllegalArgumentException ex) {

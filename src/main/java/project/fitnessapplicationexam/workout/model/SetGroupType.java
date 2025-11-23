@@ -4,4 +4,3 @@ public enum SetGroupType {
     DROP_SET
 }
 
-

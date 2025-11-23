@@ -19,15 +19,15 @@ import java.util.UUID;
 public class SettingsController {
 
     private final UserSettingsService settings;
-    private final UserService users;
+    private final UserService userService;
 
     @GetMapping({"", "/"})
     public String settings(@AuthenticationPrincipal UserDetails me, Model model) {
-        User u = settings.requireByUsername(me.getUsername());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("avatarPath", u.getProfilePicture());
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
+        User user = settings.requireByUsername(me.getUsername());
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("avatarPath", user.getProfilePicture());
+        model.addAttribute("navAvatar", user.getProfilePicture());
+        model.addAttribute("isAdmin", user.getRole() == UserRole.ADMIN);
         return "settings";
     }
 
@@ -36,7 +36,7 @@ public class SettingsController {
                                @RequestParam("avatarUrl") String avatarUrl,
                                RedirectAttributes ra) {
         try {
-            UUID id = users.findByUsernameOrThrow(me.getUsername()).getId();
+            UUID id = userService.findByUsernameOrThrow(me.getUsername()).getId();
             settings.setAvatarUrl(id, avatarUrl);
             ra.addFlashAttribute("successMessage", "Profile picture updated.");
         } catch (IllegalArgumentException e) {
@@ -48,7 +48,7 @@ public class SettingsController {
     @PostMapping("/avatar/delete")
     public String deleteAvatar(@AuthenticationPrincipal UserDetails me,
                                RedirectAttributes ra) {
-        UUID id = users.findByUsernameOrThrow(me.getUsername()).getId();
+        UUID id = userService.findByUsernameOrThrow(me.getUsername()).getId();
         settings.removeAvatar(id);
         ra.addFlashAttribute("successMessage", "Profile picture removed.");
         return "redirect:/settings";
@@ -60,26 +60,30 @@ public class SettingsController {
                                  @RequestParam("username") String newUsername,
                                  RedirectAttributes ra) {
         try {
-            UUID id = users.findByUsernameOrThrow(me.getUsername()).getId();
-            users.changeUsername(id, newUsername);
-
-            User u = users.findByIdOrThrow(id);
-            org.springframework.security.core.userdetails.UserDetails principal = org.springframework.security.core.userdetails.User
-                    .withUsername(u.getUsername())
-                    .password(u.getPasswordHash())
-                    .roles(u.getRole().name())
-                    .disabled(!u.isActive())
-                    .build();
-
-            org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                    principal, principal.getPassword(), principal.getAuthorities());
-            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
-
+            UUID userId = userService.findByUsernameOrThrow(me.getUsername()).getId();
+            userService.changeUsername(userId, newUsername);
+            updateSecurityContext(userId);
             ra.addFlashAttribute("successMessage", "Profile saved.");
         } catch (IllegalArgumentException ex) {
             ra.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/settings";
+    }
+
+    private void updateSecurityContext(UUID userId) {
+        User user = userService.findByIdOrThrow(userId);
+        org.springframework.security.core.userdetails.UserDetails principal =
+                org.springframework.security.core.userdetails.User
+                        .withUsername(user.getUsername())
+                        .password(user.getPasswordHash())
+                        .roles(user.getRole().name())
+                        .disabled(!user.isActive())
+                        .build();
+
+        org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth =
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        principal, principal.getPassword(), principal.getAuthorities());
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
 
@@ -91,8 +95,8 @@ public class SettingsController {
                                  @RequestParam String confirmPassword,
                                  RedirectAttributes ra) {
         try {
-            UUID id = users.findByUsernameOrThrow(me.getUsername()).getId();
-            settings.changePassword(id, currentPassword, newPassword, confirmPassword);
+            UUID userId = userService.findByUsernameOrThrow(me.getUsername()).getId();
+            settings.changePassword(userId, currentPassword, newPassword, confirmPassword);
             ra.addFlashAttribute("successMessage", "Password changed.");
         } catch (IllegalArgumentException ex) {
             ra.addFlashAttribute("errorMessage", ex.getMessage());

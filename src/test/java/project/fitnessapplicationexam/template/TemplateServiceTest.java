@@ -32,25 +32,25 @@ import static org.mockito.Mockito.*;
 class TemplateServiceTest {
 
 	@Mock
-	private WorkoutTemplateRepository templateRepo;
+	private WorkoutTemplateRepository workoutTemplateRepository;
 	@Mock
-	private TemplateItemRepository itemRepo;
+	private TemplateItemRepository templateItemRepository;
 	@Mock
-	private ExerciseRepository exerciseRepo;
+	private ExerciseRepository exerciseRepositorysitory;
 
 	@InjectMocks
-	private TemplateService service;
+	private TemplateService templateService;
 
 	@Test
 	void create_success() {
 		UUID owner = UUID.randomUUID();
-		when(templateRepo.existsByOwnerUserIdAndNameIgnoreCase(eq(owner), eq("Push"))).thenReturn(false);
-		when(templateRepo.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
+		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(eq(owner), eq("Push"))).thenReturn(false);
+		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
 			WorkoutTemplate t = inv.getArgument(0);
 			t.setId(UUID.randomUUID());
 			return t;
 		});
-		when(exerciseRepo.findById(any(UUID.class))).thenReturn(Optional.of(Exercise.builder().ownerUserId(owner).build()));
+		when(exerciseRepository.findById(any(UUID.class))).thenReturn(Optional.of(Exercise.builder().ownerUserId(owner).build()));
 
 		TemplateItemForm item = new TemplateItemForm();
 		item.setExerciseId(UUID.randomUUID());
@@ -59,9 +59,9 @@ class TemplateServiceTest {
 		form.setName("Push");
 		form.setItems(List.of(item));
 
-		UUID id = service.create(owner, form);
+		UUID id = templateService.create(owner, form);
 		assertNotNull(id);
-		verify(itemRepo).saveAll(anyList());
+		verify(templateItemRepository).saveAll(anyList());
 	}
 
 	@Test
@@ -75,7 +75,7 @@ class TemplateServiceTest {
 	@Test
 	void create_duplicateName_throwsException() {
 		UUID owner = UUID.randomUUID();
-		when(templateRepo.existsByOwnerUserIdAndNameIgnoreCase(owner, "Existing")).thenReturn(true);
+		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(owner, "Existing")).thenReturn(true);
 
 		TemplateForm form = new TemplateForm();
 		form.setName("Existing");
@@ -86,8 +86,8 @@ class TemplateServiceTest {
 	@Test
 	void create_noExercises_throwsException() {
 		UUID owner = UUID.randomUUID();
-		when(templateRepo.existsByOwnerUserIdAndNameIgnoreCase(owner, "Empty")).thenReturn(false);
-		when(templateRepo.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
+		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(owner, "Empty")).thenReturn(false);
+		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
 			WorkoutTemplate t = inv.getArgument(0);
 			t.setId(UUID.randomUUID());
 			return t;
@@ -104,13 +104,13 @@ class TemplateServiceTest {
 	void create_exerciseNotAllowed_throwsException() {
 		UUID owner = UUID.randomUUID();
 		UUID otherOwner = UUID.randomUUID();
-		when(templateRepo.existsByOwnerUserIdAndNameIgnoreCase(owner, "Test")).thenReturn(false);
-		when(templateRepo.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
+		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(owner, "Test")).thenReturn(false);
+		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
 			WorkoutTemplate t = inv.getArgument(0);
 			t.setId(UUID.randomUUID());
 			return t;
 		});
-		when(exerciseRepo.findById(any(UUID.class))).thenReturn(Optional.of(Exercise.builder().ownerUserId(otherOwner).build()));
+		when(exerciseRepository.findById(any(UUID.class))).thenReturn(Optional.of(Exercise.builder().ownerUserId(otherOwner).build()));
 
 		TemplateItemForm item = new TemplateItemForm();
 		item.setExerciseId(UUID.randomUUID());
@@ -124,18 +124,18 @@ class TemplateServiceTest {
 	@Test
 	void list_returnsTemplates() {
 		UUID owner = UUID.randomUUID();
-		when(templateRepo.findAllByOwnerUserIdOrderByCreatedOnDesc(owner)).thenReturn(List.of());
+		when(workoutTemplateRepository.findAllByOwnerUserIdOrderByCreatedOnDesc(owner)).thenReturn(List.of());
 
-		List<WorkoutTemplate> result = service.list(owner);
+		List<WorkoutTemplate> result = templateService.list(owner);
 		assertNotNull(result);
 	}
 
 	@Test
 	void getAvailableExercises_returnsExercises() {
 		UUID userId = UUID.randomUUID();
-		when(exerciseRepo.findAllByOwnerUserIdInOrderByNameAsc(anyList())).thenReturn(List.of());
+		when(exerciseRepository.findAllByOwnerUserIdInOrderByNameAsc(anyList())).thenReturn(List.of());
 
-		List<Exercise> result = service.getAvailableExercises(userId);
+		List<Exercise> result = templateService.getAvailableExercises(userId);
 		assertNotNull(result);
 	}
 
@@ -143,18 +143,18 @@ class TemplateServiceTest {
 	void findByIdAndOwner_returnsTemplate() {
 		UUID templateId = UUID.randomUUID();
 		UUID ownerId = UUID.randomUUID();
-		when(templateRepo.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.empty());
+		when(workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.empty());
 
-		Optional<WorkoutTemplate> result = service.findByIdAndOwner(templateId, ownerId);
+		Optional<WorkoutTemplate> result = templateService.findByIdAndOwner(templateId, ownerId);
 		assertTrue(result.isEmpty());
 	}
 
 	@Test
 	void getTemplateItems_returnsItems() {
 		UUID templateId = UUID.randomUUID();
-		when(itemRepo.findAllByTemplateIdOrderByPositionAsc(templateId)).thenReturn(List.of());
+		when(templateItemRepository.findAllByTemplateIdOrderByPositionAsc(templateId)).thenReturn(List.of());
 
-		List<TemplateItem> result = service.getTemplateItems(templateId);
+		List<TemplateItem> result = templateService.getTemplateItems(templateId);
 		assertNotNull(result);
 	}
 
@@ -162,9 +162,9 @@ class TemplateServiceTest {
 	void getExercisesByIds_returnsMap() {
 		UUID exerciseId = UUID.randomUUID();
 		Exercise exercise = Exercise.builder().id(exerciseId).build();
-		when(exerciseRepo.findAllById(anyList())).thenReturn(List.of(exercise));
+		when(exerciseRepository.findAllById(anyList())).thenReturn(List.of(exercise));
 
-		Map<UUID, Exercise> result = service.getExercisesByIds(List.of(exerciseId));
+		Map<UUID, Exercise> result = templateService.getExercisesByIds(List.of(exerciseId));
 		assertEquals(1, result.size());
 	}
 
@@ -173,9 +173,9 @@ class TemplateServiceTest {
 		UUID ownerId = UUID.randomUUID();
 		WorkoutTemplate saved = new WorkoutTemplate();
 		saved.setId(UUID.randomUUID());
-		when(templateRepo.save(any(WorkoutTemplate.class))).thenReturn(saved);
+		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenReturn(saved);
 
-		WorkoutTemplate result = service.createTemplate(ownerId, "Test", null);
+		WorkoutTemplate result = templateService.createTemplate(ownerId, "Test", null);
 		assertNotNull(result);
 	}
 
@@ -187,16 +187,16 @@ class TemplateServiceTest {
 		
 		WorkoutTemplate saved = new WorkoutTemplate();
 		saved.setId(templateId);
-		when(templateRepo.save(any(WorkoutTemplate.class))).thenReturn(saved);
+		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenReturn(saved);
 
 		TemplateItemData item = new TemplateItemData(exerciseId, 3, 0, null, null, null, null);
-		when(exerciseRepo.findAllById(any())).thenReturn(List.of(Exercise.builder()
+		when(exerciseRepository.findAllById(any())).thenReturn(List.of(Exercise.builder()
 				.id(exerciseId)
 				.ownerUserId(ownerId)
 				.build()));
-		WorkoutTemplate result = service.createTemplate(ownerId, "Test", List.of(item));
+		WorkoutTemplate result = templateService.createTemplate(ownerId, "Test", List.of(item));
 		assertNotNull(result);
-		verify(itemRepo).saveAll(anyList());
+		verify(templateItemRepository).saveAll(anyList());
 	}
 
 	@Test
@@ -205,21 +205,21 @@ class TemplateServiceTest {
 		UUID ownerId = UUID.randomUUID();
 		WorkoutTemplate template = new WorkoutTemplate();
 		template.setId(templateId);
-		when(templateRepo.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.of(template));
+		when(workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.of(template));
 
-		service.deleteTemplate(templateId, ownerId);
-		verify(templateRepo).delete(template);
-		verify(itemRepo).deleteByTemplateId(templateId);
+		templateService.deleteTemplate(templateId, ownerId);
+		verify(workoutTemplateRepository).delete(template);
+		verify(templateItemRepository).deleteByTemplateId(templateId);
 	}
 
 	@Test
 	void deleteTemplate_notFound_doesNothing() {
 		UUID templateId = UUID.randomUUID();
 		UUID ownerId = UUID.randomUUID();
-		when(templateRepo.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.empty());
+		when(workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.empty());
 
-		service.deleteTemplate(templateId, ownerId);
-		verify(templateRepo, never()).delete(any());
+		templateService.deleteTemplate(templateId, ownerId);
+		verify(workoutTemplateRepository, never()).delete(any());
 	}
 
 	@Test
@@ -228,11 +228,11 @@ class TemplateServiceTest {
 		UUID ownerId = UUID.randomUUID();
 		WorkoutTemplate template = new WorkoutTemplate();
 		template.setId(templateId);
-		when(templateRepo.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.of(template));
-		when(templateRepo.save(any(WorkoutTemplate.class))).thenReturn(template);
+		when(workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.of(template));
+		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenReturn(template);
 
-		service.updateTemplate(templateId, ownerId, "New Name", List.of());
-		verify(templateRepo).save(any());
+		templateService.updateTemplate(templateId, ownerId, "New Name", List.of());
+		verify(workoutTemplateRepository).save(any());
 	}
 
 	@Test
@@ -242,24 +242,24 @@ class TemplateServiceTest {
 		UUID exerciseId = UUID.randomUUID();
 		WorkoutTemplate template = new WorkoutTemplate();
 		template.setId(templateId);
-		when(templateRepo.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.of(template));
-		when(templateRepo.save(any(WorkoutTemplate.class))).thenReturn(template);
-		when(exerciseRepo.findAllById(any())).thenReturn(List.of(Exercise.builder()
+		when(workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.of(template));
+		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenReturn(template);
+		when(exerciseRepository.findAllById(any())).thenReturn(List.of(Exercise.builder()
 				.id(exerciseId)
 				.ownerUserId(ownerId)
 				.build()));
 
 		TemplateItemData item = new TemplateItemData(exerciseId, 3, 0, null, null, null, null);
-		service.updateTemplate(templateId, ownerId, "New Name", List.of(item));
-		verify(itemRepo).deleteByTemplateId(templateId);
-		verify(itemRepo).saveAll(anyList());
+		templateService.updateTemplate(templateId, ownerId, "New Name", List.of(item));
+		verify(templateItemRepository).deleteByTemplateId(templateId);
+		verify(templateItemRepository).saveAll(anyList());
 	}
 
 	@Test
 	void updateTemplate_notFound_throwsException() {
 		UUID templateId = UUID.randomUUID();
 		UUID ownerId = UUID.randomUUID();
-		when(templateRepo.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.empty());
+		when(workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class, () -> service.updateTemplate(templateId, ownerId, "Name", List.of()));
 	}
@@ -267,7 +267,7 @@ class TemplateServiceTest {
 	@Test
 	void isNameTaken_returnsTrue() {
 		UUID ownerId = UUID.randomUUID();
-		when(templateRepo.existsByOwnerUserIdAndNameIgnoreCase(ownerId, "Existing")).thenReturn(true);
+		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerId, "Existing")).thenReturn(true);
 
 		assertTrue(service.isNameTaken(ownerId, "Existing"));
 	}
@@ -275,7 +275,7 @@ class TemplateServiceTest {
 	@Test
 	void isNameTaken_returnsFalse() {
 		UUID ownerId = UUID.randomUUID();
-		when(templateRepo.existsByOwnerUserIdAndNameIgnoreCase(ownerId, "New")).thenReturn(false);
+		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerId, "New")).thenReturn(false);
 
 		assertFalse(service.isNameTaken(ownerId, "New"));
 	}

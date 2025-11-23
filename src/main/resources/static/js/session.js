@@ -12,40 +12,7 @@
     const draftKey = workoutSessionId ? (`workoutDraft:${workoutSessionId}`) : null;
 
 
-    function showToast(message, type = 'error') {
-        let c = document.getElementById('toast-container');
-        if (!c) {
-            c = document.createElement('div');
-            c.id = 'toast-container';
-            c.style.position = 'fixed';
-            c.style.top = '20px';
-            c.style.left = '50%';
-            c.style.transform = 'translateX(-50%)';
-            c.style.zIndex = '9999';
-            c.style.display = 'flex';
-            c.style.flexDirection = 'column';
-            c.style.gap = '10px';
-            document.body.appendChild(c);
-        }
-        const toast = document.createElement('div');
-        toast.style.padding = '12px 16px';
-        toast.style.borderRadius = '12px';
-        toast.style.backdropFilter = 'blur(10px)';
-        toast.style.border = '1px solid rgba(255,255,255,0.15)';
-        toast.style.boxShadow = '0 8px 25px rgba(0,0,0,0.25)';
-        toast.style.minWidth = '280px';
-        toast.style.textAlign = 'left';
-        toast.style.display = 'flex';
-        toast.style.alignItems = 'center';
-        toast.style.gap = '10px';
-        toast.style.color = '#fff';
-        toast.style.background = type === 'success' ? 'rgba(76,175,80,0.18)' : 'rgba(244,67,54,0.18)';
-        toast.style.borderColor = type === 'success' ? 'rgba(76,175,80,0.35)' : 'rgba(244,67,54,0.35)';
-        toast.innerHTML = `<i class=\"fas ${type==='success'?'fa-check-circle':'fa-exclamation-triangle'}\"></i><span>${message}</span>`;
-        c.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; }, 3200);
-        setTimeout(() => toast.remove(), 3600);
-    }
+    // showToast is now in utils.js
     let exerciseCounter = 0;
 
     const exercises = (exercisesRaw || []).map(ex => {

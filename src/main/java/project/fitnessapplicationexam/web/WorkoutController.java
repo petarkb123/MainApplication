@@ -17,6 +17,7 @@ import project.fitnessapplicationexam.template.service.TemplateService;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.workout.dto.FinishWorkoutRequest;
 import project.fitnessapplicationexam.workout.dto.ExerciseSetData;
+import project.fitnessapplicationexam.workout.dto.ExercisePayload;
 import project.fitnessapplicationexam.workout.dto.SetData;
 import project.fitnessapplicationexam.workout.dto.ExerciseBlock;
 import project.fitnessapplicationexam.workout.dto.WorkoutView;
@@ -31,8 +32,15 @@ import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.exercise.model.Exercise;
 import project.fitnessapplicationexam.template.model.TemplateItem;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import project.fitnessapplicationexam.config.ValidationConstants;
 
 @Controller
 @RequestMapping("/workouts")
@@ -41,18 +49,16 @@ public class WorkoutController {
 
     private final WorkoutService workoutService;
     private final TemplateService templateService;
-    private final UserService users;
+    private final UserService userService;
 
 
     @GetMapping
     public String history(@AuthenticationPrincipal UserDetails me, Model model) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        UUID userId = u.getId();
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        UUID userId = user.getId();
 
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
-        model.addAttribute("sessions", workoutService.getRecentSessions(userId, 50));
+        addCommonAttributes(model, user);
+        model.addAttribute("sessions", workoutService.getRecentSessions(userId, ValidationConstants.RECENT_SESSIONS_LIMIT_50));
         model.addAttribute("templates", templateService.list(userId));
 
         return "history";
@@ -62,23 +68,21 @@ public class WorkoutController {
     public String session(@AuthenticationPrincipal UserDetails me,
                           @RequestParam(required = false) UUID sessionId,
                           Model model) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        UUID userId = u.getId();
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        UUID userId = user.getId();
 
-        WorkoutSession s = (sessionId != null)
+        WorkoutSession session = (sessionId != null)
                 ? workoutService.findById(sessionId).orElseThrow()
                 : workoutService.start(userId);
 
-        if (!Objects.equals(s.getUserId(), userId)) {
+        if (!Objects.equals(session.getUserId(), userId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
-        model.addAttribute("isPro", u.getSubscriptionTier() == SubscriptionTier.PRO && u.isSubscriptionActive());
-        model.addAttribute("sessionId", s.getId());
-        model.addAttribute("startedAt", s.getStartedAt());
+        addCommonAttributes(model, user);
+        model.addAttribute("isPro", user.getSubscriptionTier() == SubscriptionTier.PRO && user.isSubscriptionActive());
+        model.addAttribute("sessionId", session.getId());
+        model.addAttribute("startedAt", session.getStartedAt());
 
         List<ExerciseSelect> options = workoutService.getAvailableExercises(userId)
                 .stream()
@@ -93,7 +97,7 @@ public class WorkoutController {
         model.addAttribute("exercises", options);
 
         if (sessionId != null) {
-            model.addAttribute("existingSets", workoutService.getSessionSets(s.getId()));
+            model.addAttribute("existingSets", workoutService.getSessionSets(session.getId()));
         } else {
             model.addAttribute("existingSets", Collections.emptyList());
         }
@@ -105,58 +109,25 @@ public class WorkoutController {
                           @AuthenticationPrincipal UserDetails me,
                           Model model,
                           RedirectAttributes ra) {
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        addCommonAttributes(model, user);
 
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        model.addAttribute("navAvatar", u.getProfilePicture());
-        model.addAttribute("username", u.getUsername());
-        model.addAttribute("isAdmin", u.getRole() == UserRole.ADMIN);
+        WorkoutSession session = workoutService.findById(id)
+                .filter(s -> Objects.equals(s.getUserId(), user.getId()))
+                .orElse(null);
 
-        Optional<WorkoutSession> opt = workoutService.findById(id);
-        if (opt.isEmpty()) {
-            ra.addFlashAttribute("error", "Workout not found.");
-            return "redirect:/workouts";
-        }
-        WorkoutSession session = opt.get();
-        if (!Objects.equals(session.getUserId(), u.getId())) {
+        if (session == null) {
             ra.addFlashAttribute("error", "Workout not found.");
             return "redirect:/workouts";
         }
 
         List<WorkoutSet> sets = workoutService.getSessionSets(id);
-        
-        List<UUID> exIds = sets.stream()
+        List<UUID> exerciseIds = sets.stream()
                 .map(WorkoutSet::getExerciseId)
                 .distinct()
-                .collect(Collectors.toList());
-        Map<UUID, Exercise> exercises = workoutService.getExercisesByIds(exIds);
-
-        
-        ArrayList<ExerciseBlock> blocks = new ArrayList<>();
-        UUID lastExerciseId = null;
-        List<WorkoutSet> currentBlock = new ArrayList<>();
-        
-        for (WorkoutSet set : sets) {
-            if (lastExerciseId == null || !lastExerciseId.equals(set.getExerciseId())) {
-                
-                if (lastExerciseId != null && !currentBlock.isEmpty()) {
-                    Exercise ex = exercises.get(lastExerciseId);
-                    if (ex != null) {
-                        blocks.add(new ExerciseBlock(ex, new ArrayList<>(currentBlock)));
-                    }
-                    currentBlock.clear();
-                }
-                lastExerciseId = set.getExerciseId();
-            }
-            currentBlock.add(set);
-        }
-        
-        
-        if (lastExerciseId != null && !currentBlock.isEmpty()) {
-            Exercise ex = exercises.get(lastExerciseId);
-            if (ex != null) {
-                blocks.add(new ExerciseBlock(ex, currentBlock));
-            }
-        }
+                .toList();
+        Map<UUID, Exercise> exercises = workoutService.getExercisesByIds(exerciseIds);
+        List<ExerciseBlock> blocks = buildExerciseBlocks(sets, exercises);
 
         WorkoutView workoutView = new WorkoutView(session.getStartedAt(), session.getFinishedAt(), blocks);
         model.addAttribute("workout", workoutView);
@@ -168,11 +139,11 @@ public class WorkoutController {
 
     @RequestMapping(value = "/{id}/finish", method = {RequestMethod.GET, RequestMethod.POST})
     public String finishQuick(@PathVariable UUID id, @AuthenticationPrincipal UserDetails me) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
+        User user = userService.findByUsernameOrThrow(me.getUsername());
         try {
-            workoutService.finishSessionWithSets(id, u.getId(), null);
+            workoutService.finishSessionWithSets(id, user.getId(), null);
         } catch (Exception e) {
-            workoutService.finishSession(id, u.getId());
+            workoutService.finishSession(id, user.getId());
         }
         return "redirect:/workouts";
     }
@@ -186,32 +157,11 @@ public class WorkoutController {
             return ResponseEntity.badRequest().body("Missing sessionId");
         }
 
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        
-        
-        List<ExerciseSetData> exerciseSets = null;
-        if (body.getExercises() != null && !body.getExercises().isEmpty()) {
-            exerciseSets = body.getExercises().stream()
-                    .filter(ex -> ex != null && ex.getExerciseId() != null)
-                    .map(ex -> new ExerciseSetData(
-                            ex.getExerciseId(),
-                            ex.getSets() == null ? List.of() : ex.getSets().stream()
-                                    .filter(set -> set != null)
-                                    .map(set -> new SetData(
-                                            set.getWeight(),
-                                            set.getReps(),
-                                            set.getGroupId(),
-                                            set.getGroupType(),
-                                            set.getGroupOrder(),
-                                            set.getSetNumber()
-                                    ))
-                                    .toList()
-                    ))
-                    .toList();
-        }
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        List<ExerciseSetData> exerciseSets = mapToExerciseSetData(body.getExercises());
         
         try {
-            workoutService.finishSessionWithSets(body.getSessionId(), u.getId(), exerciseSets);
+            workoutService.finishSessionWithSets(body.getSessionId(), user.getId(), exerciseSets);
             return ResponseEntity.ok().build();
         } catch (ResponseStatusException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -219,11 +169,11 @@ public class WorkoutController {
             }
             return ResponseEntity.badRequest().body(e.getReason());
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid workout data: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid workout data: " + e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
         }
     }
 
@@ -232,35 +182,35 @@ public class WorkoutController {
     @ResponseBody
     public List<ExerciseOption> templateExercises(@PathVariable UUID templateId,
                                                   @AuthenticationPrincipal UserDetails me) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
-        UUID ownerId = u.getId();
+        User user = userService.findByUsernameOrThrow(me.getUsername());
+        UUID ownerId = user.getId();
 
         templateService.findByIdAndOwner(templateId, ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         List<TemplateItem> items = templateService.getTemplateItems(templateId);
+        List<UUID> exerciseIds = items.stream()
+                .map(TemplateItem::getExerciseId)
+                .toList();
+        Map<UUID, Exercise> exercises = templateService.getExercisesByIds(exerciseIds);
 
-        List<UUID> exerciseIds = items.stream().map(it -> it.getExerciseId()).toList();
-        Map<UUID, Exercise> byId = templateService.getExercisesByIds(exerciseIds);
-
-        ArrayList<ExerciseOption> out = new ArrayList<>(items.size());
-        for (TemplateItem it : items) {
-            Exercise ex = byId.get(it.getExerciseId());
-            if (ex != null) {
-                out.add(new ExerciseOption(
-                        ex.getId(),
-                        ex.getName(),
-                        ex.getPrimaryMuscle(),
-                        it.getTargetSets(),
-                        it.getGroupId(),
-                        it.getGroupType(),
-                        it.getGroupOrder(),
-                        it.getPosition(),
-                        it.getSetNumber()
-                ));
-            }
-        }
-        return out;
+        return items.stream()
+                .map(item -> {
+                    Exercise exercise = exercises.get(item.getExerciseId());
+                    return exercise != null ? new ExerciseOption(
+                            exercise.getId(),
+                            exercise.getName(),
+                            exercise.getPrimaryMuscle(),
+                            item.getTargetSets(),
+                            item.getGroupId(),
+                            item.getGroupType(),
+                            item.getGroupOrder(),
+                            item.getPosition(),
+                            item.getSetNumber()
+                    ) : null;
+                })
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 
     @PostMapping("/{id}/delete")
@@ -268,15 +218,73 @@ public class WorkoutController {
     public String deleteWorkout(@PathVariable UUID id,
                                 @AuthenticationPrincipal UserDetails me,
                                 RedirectAttributes ra) {
-        User u = users.findByUsernameOrThrow(me.getUsername());
+        User user = userService.findByUsernameOrThrow(me.getUsername());
 
         try {
-            workoutService.deleteSession(id, u.getId());
+            workoutService.deleteSession(id, user.getId());
             ra.addFlashAttribute("success", "Workout deleted.");
         } catch (ResponseStatusException e) {
             ra.addFlashAttribute("error", "Workout not found.");
         }
 
         return "redirect:/workouts";
+    }
+
+    private void addCommonAttributes(Model model, User user) {
+        model.addAttribute("navAvatar", user.getProfilePicture());
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("isAdmin", user.getRole() == UserRole.ADMIN);
+    }
+
+    private List<ExerciseBlock> buildExerciseBlocks(List<WorkoutSet> sets, Map<UUID, Exercise> exercises) {
+        List<ExerciseBlock> blocks = new ArrayList<>();
+        UUID lastExerciseId = null;
+        List<WorkoutSet> currentBlock = new ArrayList<>();
+        
+        for (WorkoutSet set : sets) {
+            if (lastExerciseId == null || !lastExerciseId.equals(set.getExerciseId())) {
+                if (lastExerciseId != null && !currentBlock.isEmpty()) {
+                    Exercise exercise = exercises.get(lastExerciseId);
+                    if (exercise != null) {
+                        blocks.add(new ExerciseBlock(exercise, new ArrayList<>(currentBlock)));
+                    }
+                    currentBlock.clear();
+                }
+                lastExerciseId = set.getExerciseId();
+            }
+            currentBlock.add(set);
+        }
+        
+        if (lastExerciseId != null && !currentBlock.isEmpty()) {
+            Exercise exercise = exercises.get(lastExerciseId);
+            if (exercise != null) {
+                blocks.add(new ExerciseBlock(exercise, currentBlock));
+            }
+        }
+        
+        return blocks;
+    }
+
+    private List<ExerciseSetData> mapToExerciseSetData(List<ExercisePayload> exercises) {
+        if (exercises == null || exercises.isEmpty()) {
+            return null;
+        }
+        return exercises.stream()
+                .filter(ex -> ex != null && ex.getExerciseId() != null)
+                .map(ex -> new ExerciseSetData(
+                        ex.getExerciseId(),
+                        ex.getSets() == null ? List.of() : ex.getSets().stream()
+                                .filter(set -> set != null)
+                                .map(set -> new SetData(
+                                        set.getWeight(),
+                                        set.getReps(),
+                                        set.getGroupId(),
+                                        set.getGroupType(),
+                                        set.getGroupOrder(),
+                                        set.getSetNumber()
+                                ))
+                                .toList()
+                ))
+                .toList();
     }
 }

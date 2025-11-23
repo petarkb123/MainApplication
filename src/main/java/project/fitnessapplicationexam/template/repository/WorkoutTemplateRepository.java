@@ -16,5 +16,4 @@ public interface WorkoutTemplateRepository extends JpaRepository<WorkoutTemplate
     boolean existsByOwnerUserIdAndNameIgnoreCase(UUID ownerUserId, String name);
 
     Optional<WorkoutTemplate> findByIdAndOwnerUserId(UUID id, UUID ownerId);
-
 }

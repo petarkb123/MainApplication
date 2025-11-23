@@ -17,28 +17,28 @@ import project.fitnessapplicationexam.user.repository.UserRepository;
 public class WebSecurityConfig {
 
     @Bean
-    PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
-    UserDetailsService userDetailsService(UserRepository users) {
+    UserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> {
-            User u = users.findByUsername(username)
+            User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
             return org.springframework.security.core.userdetails.User
-                    .withUsername(u.getUsername())
-                    .password(u.getPasswordHash())
-                    .roles(u.getRole().name())
-                    .disabled(!u.isActive())
+                    .withUsername(user.getUsername())
+                    .password(user.getPasswordHash())
+                    .roles(user.getRole().name())
+                    .disabled(!user.isActive())
                     .build();
         };
     }
 
     @Bean
     SecurityFilterChain security(HttpSecurity http, Environment env) throws Exception {
-
         String rememberCookie = env.getProperty(
                 "app.security.remember-me.cookie", "FITPOWER_REMEMBER_ME");
-
         int validity = env.getProperty(
                 "app.security.remember-me.validity-seconds", Integer.class, 1800); 
 

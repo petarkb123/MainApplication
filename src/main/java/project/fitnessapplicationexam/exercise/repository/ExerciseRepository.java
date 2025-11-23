@@ -19,7 +19,4 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
     List<Exercise> findAllByOwnerUserIdInOrderByNameAsc(Collection<UUID> ownerIds);
 
     Optional<Exercise> findByNameIgnoreCaseAndOwnerUserId(String name, UUID ownerUserId);
-
-
-
 }

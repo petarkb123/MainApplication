@@ -6,15 +6,21 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
+import project.fitnessapplicationexam.exercise.model.Exercise;
+import project.fitnessapplicationexam.workout.model.SetGroupType;
 
 @Entity
-@Table(name="template_items",
-        indexes={
-                @Index(name="ix_ti_tpl", columnList="template_id"),
-                @Index(name="ix_ti_ex", columnList="exercise_id")
+@Table(name = "template_items",
+        indexes = {
+                @Index(name = "ix_ti_tpl", columnList = "template_id"),
+                @Index(name = "ix_ti_ex", columnList = "exercise_id")
         })
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@Builder(toBuilder = true) @EqualsAndHashCode(of="id")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@EqualsAndHashCode(of = "id")
 public class TemplateItem {
 
     @Id
@@ -23,10 +29,9 @@ public class TemplateItem {
     @Column(name = "id", columnDefinition = "char(36)")
     private UUID id;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
-    private project.fitnessapplicationexam.exercise.model.Exercise exercise;
+    private Exercise exercise;
 
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "exercise_id", columnDefinition = "char(36)", nullable = false, insertable = false, updatable = false)
@@ -36,9 +41,10 @@ public class TemplateItem {
     @Column(name = "template_id", columnDefinition = "char(36)", nullable = false)
     private UUID templateId;
 
-    @Column(name="target_sets") private Integer targetSets;
+    @Column(name = "target_sets")
+    private Integer targetSets;
 
-    @Column(name="position",nullable=false)
+    @Column(name = "position", nullable = false)
     @Builder.Default
     private Integer position = 1;
 
@@ -48,7 +54,7 @@ public class TemplateItem {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "group_type", length = 20)
-    private project.fitnessapplicationexam.workout.model.SetGroupType groupType;
+    private SetGroupType groupType;
 
     @Column(name = "group_order")
     private Integer groupOrder;
