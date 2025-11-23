@@ -41,7 +41,7 @@ The main application runs on port 9090, and there's a separate analytics microse
 The application will create the database automatically when you first run it, but you can also create it manually:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS fitness_main_soft_uni;
+CREATE DATABASE IF NOT EXISTS fitness_app;
 ```
 
 ### Configuring Database Credentials
@@ -177,7 +177,7 @@ Admin-only: `/admin/**` routes
 ## Database
 
 The main application uses MySQL with:
-- Database: `fitness_main_soft_uni`
+- Database: `fitness_app`
 - UUID primary keys for all entities
 - JPA relationships between entities
 - Automatic schema updates (Hibernate DDL auto)
