@@ -18,7 +18,6 @@
     let exerciseCounter = 0;
     let currentDropSetExerciseIndex = null;
 
-    // showToast is now in utils.js
 
     function groupByMuscle(list) {
         return list.reduce((acc, ex) => {

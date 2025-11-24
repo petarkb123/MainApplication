@@ -1,6 +1,4 @@
-/**
- * Shared utility functions for the Fitness Application
- */
+
 
 (function() {
     'use strict';
@@ -76,7 +74,6 @@
         }
     }
 
-    // Export to global scope
     window.showToast = showToast;
     window.togglePassword = togglePassword;
 })();

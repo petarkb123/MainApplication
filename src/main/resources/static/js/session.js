@@ -12,7 +12,6 @@
     const draftKey = workoutSessionId ? (`workoutDraft:${workoutSessionId}`) : null;
 
 
-    // showToast is now in utils.js
     let exerciseCounter = 0;
 
     const exercises = (exercisesRaw || []).map(ex => {
@@ -68,7 +67,7 @@
     }
 
     function openAddExerciseModal() {
-        populateExerciseSelect(); // keep options fresh
+        populateExerciseSelect(); 
         const m = document.getElementById('addExerciseModal');
         m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
     }
@@ -228,7 +227,6 @@
         const list = row.parentElement;
         const exerciseIndex = list.id.replace('sets-', '');
         
-        // If removing a main set, also remove its drop sets
         if (!row.classList.contains('drop-set-row')) {
             let nextSibling = row.nextElementSibling;
             while (nextSibling && nextSibling.classList.contains('drop-set-row')) {
@@ -340,7 +338,6 @@
         })
             .then(r => { 
                 if (r.ok) {
-                    // Clear draft on success
                     try { if (draftKey) localStorage.removeItem(draftKey); } catch(_) {}
                     window.location.href = '/workouts'; 
                 } else {

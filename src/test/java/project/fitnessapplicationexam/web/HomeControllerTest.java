@@ -10,6 +10,7 @@ import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.workout.model.WorkoutSession;
 import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepository;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 
 import java.util.List;
 import java.util.UUID;
@@ -53,7 +54,7 @@ class HomeControllerTest {
         when(sessionRepository.findTop5ByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of());
 
         mockMvc.perform(get("/")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("testuser")))
+                        .with(SecurityMockMvcRequestPostProcessors.user("testuser")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"))
                 .andExpect(model().attributeExists("navAvatar"))
@@ -79,7 +80,7 @@ class HomeControllerTest {
         when(sessionRepository.findTop5ByUserIdOrderByStartedAtDesc(userId)).thenReturn(List.of(session));
 
         mockMvc.perform(get("/")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("testuser")))
+                        .with(SecurityMockMvcRequestPostProcessors.user("testuser")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("recentWorkouts"));
     }

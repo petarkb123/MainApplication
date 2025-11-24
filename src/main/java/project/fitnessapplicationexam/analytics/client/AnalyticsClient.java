@@ -4,6 +4,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import project.fitnessapplicationexam.analytics.dto.sync.ExerciseSyncRequest;
+import project.fitnessapplicationexam.analytics.dto.sync.WorkoutSyncRequest;
 import project.fitnessapplicationexam.analytics.dto.*;
 
 import java.time.LocalDate;
@@ -73,13 +75,13 @@ public interface AnalyticsClient {
             @PathVariable UUID id);
 
     @PostMapping("/internal/exercises")
-    void syncExercises(@RequestBody List<project.fitnessapplicationexam.analytics.dto.sync.ExerciseSyncRequest> requests);
+    void syncExercises(@RequestBody List<ExerciseSyncRequest> requests);
 
     @DeleteMapping("/internal/exercises/{exerciseId}")
     void deleteExercise(@PathVariable UUID exerciseId);
 
     @PostMapping("/internal/workouts")
-    void syncWorkout(@RequestBody project.fitnessapplicationexam.analytics.dto.sync.WorkoutSyncRequest request);
+    void syncWorkout(@RequestBody WorkoutSyncRequest request);
 
     @DeleteMapping("/internal/workouts/{workoutId}")
     void deleteWorkout(@PathVariable UUID workoutId);

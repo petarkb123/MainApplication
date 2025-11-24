@@ -30,6 +30,7 @@ import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.exercise.model.Exercise;
+import org.springframework.dao.DataIntegrityViolationException;
 import project.fitnessapplicationexam.template.model.TemplateItem;
 
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class WorkoutController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Session not found");
             }
             return ResponseEntity.badRequest().body(e.getReason());
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Invalid workout data: " + e.getMessage());
         } catch (Exception e) {

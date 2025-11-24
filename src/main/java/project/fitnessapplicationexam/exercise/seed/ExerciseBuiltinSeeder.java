@@ -115,7 +115,6 @@ public class ExerciseBuiltinSeeder implements ApplicationRunner {
     private void upsert(String name, MuscleGroup muscleGroup, Equipment equipment, UUID owner) {
         exerciseRepository.findByNameIgnoreCaseAndOwnerUserId(name, owner).ifPresentOrElse(
                 existing -> {
-                    // Exercise already exists, no action needed
                 },
                 () -> {
                     Exercise exercise = Exercise.builder()

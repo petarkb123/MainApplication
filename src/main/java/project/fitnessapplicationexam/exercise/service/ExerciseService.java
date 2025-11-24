@@ -12,6 +12,7 @@ import project.fitnessapplicationexam.exercise.repository.ExerciseRepository;
 import project.fitnessapplicationexam.template.repository.TemplateItemRepository;
 import project.fitnessapplicationexam.workout.repository.WorkoutSetRepository;
 import project.fitnessapplicationexam.analytics.AnalyticsSyncService;
+import java.util.Optional;
 
 import java.util.List;
 import java.util.UUID;
@@ -51,7 +52,7 @@ public class ExerciseService {
         return exerciseRepository.findAllByOwnerUserIdInOrderByNameAsc(ownerIds);
     }
 
-    public java.util.Optional<Exercise> findByIdAndOwnerUserId(UUID id, UUID ownerId) {
+    public Optional<Exercise> findByIdAndOwnerUserId(UUID id, UUID ownerId) {
         return exerciseRepository.findByIdAndOwnerUserId(id, ownerId);
     }
 

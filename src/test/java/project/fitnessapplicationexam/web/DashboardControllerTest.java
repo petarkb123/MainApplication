@@ -12,6 +12,7 @@ import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.workout.service.WorkoutService;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -53,7 +54,7 @@ class DashboardControllerTest {
         when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
         WeeklySummaryResponse response = new WeeklySummaryResponse(LocalDate.now(), LocalDate.now(), List.of());
         when(analyticsClient.getWeeklyStats(any(), any(), any())).thenReturn(
-                org.springframework.http.ResponseEntity.ok(response)
+                ResponseEntity.ok(response)
         );
         when(workoutService.getRecentSessions(any(), anyInt())).thenReturn(List.of());
 

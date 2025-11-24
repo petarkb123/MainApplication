@@ -23,6 +23,7 @@ import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.template.model.WorkoutTemplate;
 import project.fitnessapplicationexam.template.model.TemplateItem;
 import project.fitnessapplicationexam.exercise.model.Exercise;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +70,7 @@ public class TemplateController {
     }
 
     @PostMapping({"", "/", "/create", "/add"})
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public String create(@AuthenticationPrincipal UserDetails me,
                          @ModelAttribute("form") @Valid TemplateForm form,
                          BindingResult binding,
@@ -113,7 +114,7 @@ public class TemplateController {
 
 
     @PostMapping("/{id}/delete")
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public String delete(@PathVariable UUID id,
                          @AuthenticationPrincipal UserDetails me,
                          RedirectAttributes ra) {
@@ -178,7 +179,7 @@ public class TemplateController {
     }
 
     @PostMapping("/{id}/edit")
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public String editSave(@PathVariable UUID id,
                            @AuthenticationPrincipal UserDetails me,
                            @ModelAttribute("form") @Valid TemplateForm form,

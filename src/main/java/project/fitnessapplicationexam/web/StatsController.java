@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.fitnessapplicationexam.analytics.client.AnalyticsClient;
 import project.fitnessapplicationexam.analytics.dto.*;
@@ -211,7 +212,7 @@ public class StatsController {
         }
     }
 
-    private <T> T getBodyOrNull(org.springframework.http.ResponseEntity<T> response) {
+    private <T> T getBodyOrNull(ResponseEntity<T> response) {
         return response != null ? response.getBody() : null;
     }
 

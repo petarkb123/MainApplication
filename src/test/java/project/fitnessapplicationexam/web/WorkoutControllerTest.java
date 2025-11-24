@@ -21,6 +21,8 @@ import project.fitnessapplicationexam.workout.model.WorkoutSession;
 import project.fitnessapplicationexam.workout.model.WorkoutSet;
 import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepository;
 import project.fitnessapplicationexam.workout.service.WorkoutService;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -252,7 +254,7 @@ class WorkoutControllerTest {
         user.setUsername("testuser");
 
         when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
-        doThrow(new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND))
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
                 .when(workoutService).deleteSession(any(), any());
 
         mockMvc.perform(post("/workouts/{id}/delete", sessionId).with(csrf()))

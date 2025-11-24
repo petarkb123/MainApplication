@@ -6,7 +6,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.user.service.UserSettingsService;
 import project.fitnessapplicationexam.user.model.User;
@@ -72,18 +76,16 @@ public class SettingsController {
 
     private void updateSecurityContext(UUID userId) {
         User user = userService.findByIdOrThrow(userId);
-        org.springframework.security.core.userdetails.UserDetails principal =
-                org.springframework.security.core.userdetails.User
+        UserDetails principal = User
                         .withUsername(user.getUsername())
                         .password(user.getPasswordHash())
                         .roles(user.getRole().name())
                         .disabled(!user.isActive())
                         .build();
 
-        org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth =
-                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+        UsernamePasswordAuthenticationToken auth = authentication.UsernamePasswordAuthenticationToken(
                         principal, principal.getPassword(), principal.getAuthorities());
-        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
 
