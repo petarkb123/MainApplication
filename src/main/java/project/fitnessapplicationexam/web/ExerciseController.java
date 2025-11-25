@@ -17,7 +17,6 @@ import project.fitnessapplicationexam.exercise.service.ExerciseService;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

@@ -10,7 +10,6 @@ import project.fitnessapplicationexam.workout.model.SessionStatus;
 import project.fitnessapplicationexam.workout.model.WorkoutSession;
 import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepository;
 import project.fitnessapplicationexam.workout.repository.WorkoutSetRepository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 

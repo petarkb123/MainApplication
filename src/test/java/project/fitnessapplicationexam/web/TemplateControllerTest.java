@@ -17,9 +17,7 @@ import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.workout.service.WorkoutService;
-
 import java.util.*;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;

@@ -14,12 +14,10 @@ import project.fitnessapplicationexam.exercise.model.MuscleGroup;
 import project.fitnessapplicationexam.workout.model.SessionStatus;
 import project.fitnessapplicationexam.workout.model.WorkoutSession;
 import project.fitnessapplicationexam.workout.model.WorkoutSet;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 

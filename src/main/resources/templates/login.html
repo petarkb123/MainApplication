@@ -120,7 +120,6 @@
 <script th:src="@{/js/utils.js}"></script>
 <script th:inline="javascript">
 
-    // Form validation
     document.querySelector('.login-form').addEventListener('submit', function(e) {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -138,14 +137,12 @@
         }
     });
 
-    // Show server-side login error (from /login?error)
     (function(){
         const hasError = /*[[${errorMessage != null}]]*/ false;
         const msg = /*[[${errorMessage}]]*/ '';
         if (hasError && msg) { showToast(msg); }
     })();
 
-    // Smooth animations on load
     document.addEventListener('DOMContentLoaded', function() {
         const loginCard = document.querySelector('.login-card');
 
@@ -159,14 +156,11 @@
         }, 100);
     });
 
-    // Social login buttons
     document.querySelector('.btn-google').addEventListener('click', function() {
-        // Add Google OAuth logic here
         console.log('Google login clicked');
     });
 
     document.querySelector('.btn-apple').addEventListener('click', function() {
-        // Add Apple OAuth logic here
         console.log('Apple login clicked');
     });
 </script>

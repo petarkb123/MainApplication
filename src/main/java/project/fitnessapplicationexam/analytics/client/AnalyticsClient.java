@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import project.fitnessapplicationexam.analytics.dto.sync.ExerciseSyncRequest;
 import project.fitnessapplicationexam.analytics.dto.sync.WorkoutSyncRequest;
 import project.fitnessapplicationexam.analytics.dto.*;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;

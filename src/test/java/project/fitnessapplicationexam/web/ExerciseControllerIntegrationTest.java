@@ -14,10 +14,8 @@ import project.fitnessapplicationexam.exercise.service.ExerciseService;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.service.UserService;
-
 import java.util.List;
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

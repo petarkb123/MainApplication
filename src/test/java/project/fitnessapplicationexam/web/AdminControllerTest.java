@@ -12,11 +12,9 @@ import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.repository.UserRepository;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.user.service.UserSubscriptionService;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;

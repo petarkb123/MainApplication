@@ -2,7 +2,6 @@ package project.fitnessapplicationexam.template.dto;
 
 import project.fitnessapplicationexam.exercise.model.MuscleGroup;
 import project.fitnessapplicationexam.workout.model.SetGroupType;
-
 import java.util.UUID;
 
 public record ExerciseOption(

@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import project.fitnessapplicationexam.workout.model.SetGroupType;
-
 import java.util.UUID;
 
 @Data

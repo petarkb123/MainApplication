@@ -17,7 +17,6 @@ import project.fitnessapplicationexam.template.repository.TemplateItemRepository
 import project.fitnessapplicationexam.template.repository.WorkoutTemplateRepository;
 import project.fitnessapplicationexam.template.form.TemplateForm;
 import project.fitnessapplicationexam.template.form.TemplateItemForm;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;

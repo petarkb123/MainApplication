@@ -8,12 +8,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.repository.UserRepository;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

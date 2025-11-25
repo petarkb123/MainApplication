@@ -19,10 +19,8 @@ import project.fitnessapplicationexam.workout.model.WorkoutSet;
 import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepository;
 import project.fitnessapplicationexam.workout.repository.WorkoutSetRepository;
 import project.fitnessapplicationexam.workout.service.WorkoutService;
-
 import java.time.LocalDateTime;
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;

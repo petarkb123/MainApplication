@@ -11,11 +11,9 @@ import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.repository.UserRepository;
 import project.fitnessapplicationexam.user.service.UserSettingsService;
 import project.fitnessapplicationexam.common.exceptions.InvalidAvatarUrlException;
-
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;

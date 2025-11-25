@@ -12,7 +12,6 @@ import project.fitnessapplicationexam.exercise.model.Exercise;
 import project.fitnessapplicationexam.workout.model.SessionStatus;
 import project.fitnessapplicationexam.workout.model.WorkoutSession;
 import project.fitnessapplicationexam.workout.model.WorkoutSet;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;

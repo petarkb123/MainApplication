@@ -248,7 +248,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         processExerciseGrouping();
         
-        // Animate cards on load
         setTimeout(() => {
             const cards = document.querySelectorAll('.exercise-detail-card');
             cards.forEach((card, index) => {
@@ -263,7 +262,6 @@
             });
         }, 50);
 
-        // Animate summary cards
         const summaryCards = document.querySelectorAll('.summary-card');
         summaryCards.forEach((card, index) => {
             card.style.opacity = '0';
@@ -283,9 +281,8 @@
         
         const exerciseCards = Array.from(container.querySelectorAll('.exercise-detail-card'));
         const processedExercises = [];
-        const supersetGroups = new Map(); // groupId -> exercises array
+        const supersetGroups = new Map(); 
         
-        // Extract all exercise data from the DOM
         const allExercises = exerciseCards.map(card => {
             const exerciseId = card.getAttribute('data-exercise-id');
             const exerciseName = card.getAttribute('data-exercise-name');
@@ -307,7 +304,6 @@
             return { exerciseId, exerciseName, exerciseMuscle, sets };
         });
         
-        // Group superset exercises by groupId
         allExercises.forEach(exercise => {
             const supersetSet = exercise.sets.find(s => s.groupType === 'SUPERSET' && s.groupId && s.groupId !== 'null');
             if (supersetSet) {
@@ -319,27 +315,22 @@
             }
         });
         
-        // Track which exercises are part of supersets
         const supersetExerciseIds = new Set();
         supersetGroups.forEach(group => {
             group.forEach(ex => supersetExerciseIds.add(ex.exerciseId));
         });
         
-        // Build final ordered list
         const processedSupersetGroups = new Set();
         
         allExercises.forEach(exercise => {
-            // Check if this exercise is part of a superset
             const supersetSet = exercise.sets.find(s => s.groupType === 'SUPERSET' && s.groupId && s.groupId !== 'null');
             
             if (supersetSet) {
                 const groupId = supersetSet.groupId;
                 
-                // Only add the superset once (when we encounter the first exercise of the pair)
                 if (!processedSupersetGroups.has(groupId)) {
                     const group = supersetGroups.get(groupId);
                     if (group && group.length === 2) {
-                        // Sort by groupOrder to ensure correct pairing
                         group.sort((a, b) => {
                             const orderA = a.sets.find(s => s.groupType === 'SUPERSET')?.groupOrder || 0;
                             const orderB = b.sets.find(s => s.groupType === 'SUPERSET')?.groupOrder || 0;
@@ -355,7 +346,6 @@
                     }
                 }
             } else {
-                // Regular exercise (not part of any superset)
                 processedExercises.push({
                     type: 'regular',
                     exerciseId: exercise.exerciseId,
@@ -366,7 +356,6 @@
             }
         });
         
-        // Clear and rebuild the container
         container.innerHTML = '';
         
         processedExercises.forEach(item => {
@@ -385,7 +374,6 @@
         const ex1 = data.exercises[0];
         const ex2 = data.exercises[1];
         
-        // Filter superset sets only
         const supersetSets = ex1.sets.filter(s => s.groupType === 'SUPERSET');
         const totalVolume = supersetSets.reduce((sum, s, i) => {
             const ex2Set = ex2.sets.filter(s => s.groupType === 'SUPERSET')[i];
@@ -469,7 +457,6 @@
         const totalReps = data.sets.reduce((sum, s) => sum + s.reps, 0);
         const avgWeight = totalVolume / totalReps;
         
-        // Count actual sets (not including drop sets as separate sets)
         const regularSetCount = data.sets.filter(s => !s.groupType || s.groupType !== 'DROP_SET' || (s.groupOrder === 0 || s.groupOrder === '0')).length;
         
         let setsHTML = '';
@@ -477,29 +464,25 @@
         
         
         
-        // Group sets by setNumber for proper drop set display
         const setsBySetNumber = new Map();
         data.sets.forEach(set => {
-            const setNum = set.setNumber || setNumber; // fallback to current set number
+            const setNum = set.setNumber || setNumber; 
             if (!setsBySetNumber.has(setNum)) {
                 setsBySetNumber.set(setNum, []);
             }
             setsBySetNumber.get(setNum).push(set);
         });
         
-        // Process sets in order by setNumber
         const sortedSetNumbers = Array.from(setsBySetNumber.keys()).sort((a, b) => a - b);
         
         for (const setNum of sortedSetNumbers) {
             const setsForThisNumber = setsBySetNumber.get(setNum);
             
             
-            // Find the main set (groupOrder 0 or no group)
             const mainSet = setsForThisNumber.find(s => !s.groupType || s.groupType !== 'DROP_SET' || s.groupOrder === 0);
             const dropSets = setsForThisNumber.filter(s => s.groupType === 'DROP_SET' && s.groupOrder > 0);
             
             if (mainSet) {
-                // Render main set
                 setsHTML += `
                     <div class="set-row">
                         <span class="set-number">${setNum}</span>
@@ -510,7 +493,6 @@
                 `;
                 
                 
-                // Render drop sets for this main set
                 dropSets.forEach(dropSet => {
                     
                     setsHTML += `
@@ -526,7 +508,6 @@
                     
                 });
             } else {
-                // No main set found, treat all as regular sets
                 setsForThisNumber.forEach(set => {
                     setsHTML += `
                         <div class="set-row">

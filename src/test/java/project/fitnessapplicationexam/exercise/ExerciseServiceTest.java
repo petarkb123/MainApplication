@@ -13,13 +13,11 @@ import project.fitnessapplicationexam.exercise.repository.ExerciseRepository;
 import project.fitnessapplicationexam.exercise.service.ExerciseService;
 import project.fitnessapplicationexam.template.repository.TemplateItemRepository;
 import project.fitnessapplicationexam.workout.repository.WorkoutSetRepository;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;

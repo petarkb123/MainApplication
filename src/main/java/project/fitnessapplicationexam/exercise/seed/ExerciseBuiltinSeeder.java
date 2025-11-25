@@ -11,7 +11,6 @@ import project.fitnessapplicationexam.exercise.model.Equipment;
 import project.fitnessapplicationexam.exercise.model.Exercise;
 import project.fitnessapplicationexam.exercise.model.MuscleGroup;
 import project.fitnessapplicationexam.exercise.repository.ExerciseRepository;
-
 import java.time.LocalDateTime;
 import project.fitnessapplicationexam.analytics.AnalyticsSyncService;
 

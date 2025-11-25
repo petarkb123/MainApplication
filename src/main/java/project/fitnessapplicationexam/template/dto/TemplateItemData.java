@@ -1,7 +1,6 @@
 package project.fitnessapplicationexam.template.dto;
 
 import project.fitnessapplicationexam.workout.model.SetGroupType;
-
 import java.util.UUID;
 
 public record TemplateItemData(

@@ -8,9 +8,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.service.UserService;
-
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;

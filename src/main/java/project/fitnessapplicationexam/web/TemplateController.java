@@ -24,7 +24,6 @@ import project.fitnessapplicationexam.template.model.WorkoutTemplate;
 import project.fitnessapplicationexam.template.model.TemplateItem;
 import project.fitnessapplicationexam.exercise.model.Exercise;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

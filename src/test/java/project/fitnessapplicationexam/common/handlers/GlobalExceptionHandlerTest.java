@@ -12,10 +12,8 @@ import project.fitnessapplicationexam.common.exceptions.EmptyTemplateException;
 import project.fitnessapplicationexam.common.exceptions.InvalidAvatarUrlException;
 import project.fitnessapplicationexam.common.exceptions.TemplateNameConflictException;
 import project.fitnessapplicationexam.common.exceptions.WorkoutAlreadyFinishedException;
-
 import jakarta.validation.ConstraintViolationException;
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)

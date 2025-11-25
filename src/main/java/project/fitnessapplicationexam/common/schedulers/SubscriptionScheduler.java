@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.repository.UserRepository;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import project.fitnessapplicationexam.config.ValidationConstants;

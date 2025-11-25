@@ -14,7 +14,6 @@ import project.fitnessapplicationexam.analytics.dto.*;
 import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.service.UserService;
-
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;

@@ -167,7 +167,6 @@
 </div>
 
 <script>
-    // Save form data before navigating away
     function saveFormData(event, url) {
         event.preventDefault();
         
@@ -186,7 +185,6 @@
         window.location.href = url;
     }
     
-    // Restore form data on page load
     function restoreFormData() {
         const savedData = sessionStorage.getItem('registerFormData');
         if (savedData) {
@@ -202,7 +200,6 @@
                 if (formData.terms) document.getElementById('terms').checked = formData.terms;
                 if (formData.newsletter) document.getElementById('newsletter').checked = formData.newsletter;
                 
-                // Trigger password strength check if password was restored
                 if (formData.password) {
                     const event = new Event('input');
                     document.getElementById('password').dispatchEvent(event);
@@ -213,7 +210,6 @@
         }
     }
 
-    // Password strength checker
     function checkPasswordStrength(password) {
         let strength = 0;
         let strengthText = '';
@@ -252,7 +248,6 @@
         return { strength, strengthText, strengthClass };
     }
 
-    // Update password strength indicator
     document.getElementById('password').addEventListener('input', function() {
         const password = this.value;
         const strength = checkPasswordStrength(password);
@@ -265,7 +260,6 @@
     });
 
 
-    // Form validation
     document.querySelector('.register-form').addEventListener('submit', function(e) {
         const firstName = document.getElementById('firstName').value;
         const lastName = document.getElementById('lastName').value;
@@ -311,7 +305,6 @@
             return;
         }
         
-        // Clear saved form data on successful submission
         sessionStorage.removeItem('registerFormData');
     });
 
@@ -320,9 +313,7 @@
         return emailRegex.test(email);
     }
 
-    // Smooth animations on load
     document.addEventListener('DOMContentLoaded', function() {
-        // Restore form data if available
         restoreFormData();
         
         const registerCard = document.querySelector('.register-card');
@@ -337,14 +328,11 @@
         }, 100);
     });
 
-    // Social login buttons
     document.querySelector('.btn-google').addEventListener('click', function() {
-        // Add Google OAuth logic here
         console.log('Google registration clicked');
     });
 
     document.querySelector('.btn-apple').addEventListener('click', function() {
-        // Add Apple OAuth logic here
         console.log('Apple registration clicked');
     });
 </script>

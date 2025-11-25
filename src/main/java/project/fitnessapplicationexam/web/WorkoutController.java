@@ -32,7 +32,6 @@ import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.exercise.model.Exercise;
 import org.springframework.dao.DataIntegrityViolationException;
 import project.fitnessapplicationexam.template.model.TemplateItem;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

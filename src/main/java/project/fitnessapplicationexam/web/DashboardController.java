@@ -15,7 +15,6 @@ import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.workout.service.WorkoutService;
 import project.fitnessapplicationexam.config.ValidationConstants;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Collections;

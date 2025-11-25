@@ -15,7 +15,6 @@ import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.user.service.UserSubscriptionService;
-
 import java.util.UUID;
 
 @Controller

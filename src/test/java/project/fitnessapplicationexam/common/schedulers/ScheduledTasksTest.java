@@ -9,11 +9,9 @@ import project.fitnessapplicationexam.workout.model.SessionStatus;
 import project.fitnessapplicationexam.workout.model.WorkoutSession;
 import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepository;
 import project.fitnessapplicationexam.workout.repository.WorkoutSetRepository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 

@@ -1,7 +1,6 @@
 package project.fitnessapplicationexam.analytics.dto.sync;
 
 import project.fitnessapplicationexam.workout.model.SetGroupType;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 

@@ -23,13 +23,11 @@ import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepositor
 import project.fitnessapplicationexam.workout.service.WorkoutService;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;

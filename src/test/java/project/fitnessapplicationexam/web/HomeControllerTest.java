@@ -11,10 +11,8 @@ import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.workout.model.WorkoutSession;
 import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepository;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-
 import java.util.List;
 import java.util.UUID;
-
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;

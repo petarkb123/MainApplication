@@ -13,7 +13,6 @@ import project.fitnessapplicationexam.template.repository.TemplateItemRepository
 import project.fitnessapplicationexam.workout.repository.WorkoutSetRepository;
 import project.fitnessapplicationexam.analytics.AnalyticsSyncService;
 import java.util.Optional;
-
 import java.util.List;
 import java.util.UUID;
 

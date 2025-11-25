@@ -18,7 +18,6 @@ import project.fitnessapplicationexam.workout.model.WorkoutSet;
 import project.fitnessapplicationexam.workout.repository.WorkoutSessionRepository;
 import project.fitnessapplicationexam.workout.repository.WorkoutSetRepository;
 import project.fitnessapplicationexam.analytics.AnalyticsSyncService;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

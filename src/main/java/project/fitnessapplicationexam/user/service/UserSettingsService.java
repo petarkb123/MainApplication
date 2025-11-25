@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.common.exceptions.InvalidAvatarUrlException;
 import project.fitnessapplicationexam.user.repository.UserRepository;
-
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
