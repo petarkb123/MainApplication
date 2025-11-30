@@ -159,14 +159,6 @@
                         </label>
                     </div>
 
-                    <div class="form-options">
-                        <label class="checkbox-container">
-                            <input type="checkbox" name="newsletter" id="newsletter">
-                            <span class="checkmark"></span>
-                            Subscribe to fitness tips and updates
-                        </label>
-                    </div>
-
                     <button type="submit" class="btn btn-primary btn-large register-btn">
                         <i class="fas fa-user-plus"></i>
                         Create Account
@@ -193,8 +185,7 @@
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
             confirmPassword: document.getElementById('confirmPassword').value,
-            terms: document.getElementById('terms').checked,
-            newsletter: document.getElementById('newsletter').checked
+            terms: document.getElementById('terms').checked
         };
         
         sessionStorage.setItem('registerFormData', JSON.stringify(formData));
@@ -214,7 +205,6 @@
                 if (formData.password) document.getElementById('password').value = formData.password;
                 if (formData.confirmPassword) document.getElementById('confirmPassword').value = formData.confirmPassword;
                 if (formData.terms) document.getElementById('terms').checked = formData.terms;
-                if (formData.newsletter) document.getElementById('newsletter').checked = formData.newsletter;
                 
                 if (formData.password) {
                     const event = new Event('input');

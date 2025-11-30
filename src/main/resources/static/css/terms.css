@@ -173,6 +173,13 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.95rem;
+    flex-wrap: wrap;
+}
+
+.page-footer span {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.5;
 }
 
 .page-footer a {
@@ -180,6 +187,9 @@ body {
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.5;
 }
 
 .page-footer a:hover {
