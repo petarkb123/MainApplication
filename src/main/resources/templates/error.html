@@ -2,30 +2,192 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>FitPower - Error</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/component-layout.css}">
-    <link rel="stylesheet" th:href="@{/css/component-sidebar.css}">
     <link rel="stylesheet" th:href="@{/css/component-buttons.css}">
-    <link rel="stylesheet" th:href="@{/css/component-forms.css}">
-    <link rel="stylesheet" th:href="@{/css/component-modals.css}">
-    <link rel="stylesheet" th:href="@{/css/component-headers.css}">
-    <link rel="stylesheet" th:href="@{/css/component-profile.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
 </head>
 <body>
-<div class="dashboard-container" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
-    <div style="max-width:720px;background:rgba(42,42,65,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:32px;text-align:center;color:#fff;">
-        <div style="font-size:48px;margin-bottom:12px;">
-            <i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>
-        </div>
-        <h1 style="font-weight:800;margin:0 0 8px 0;">Error</h1>
-        <p style="opacity:.9;margin:0 0 16px 0;" th:text="${error}">Error occurred</p>
-        <p style="opacity:.8;margin:0 0 24px 0;" th:text="${message}">Please try again</p>
-        <a href="/" class="btn" style="display:inline-block;padding:10px 16px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;">Go Home</a>
+<div class="background-elements">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-shapes">
+        <div class="bg-shape bg-shape-1"></div>
+        <div class="bg-shape bg-shape-2"></div>
+        <div class="bg-shape bg-shape-3"></div>
     </div>
 </div>
+
+<div class="main-glass-container">
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="/" class="nav-logo">
+                    <div class="logo-circle"><i class="fas fa-dumbbell"></i></div>
+                    <span>FitPower</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="error-container">
+            <div class="error-card">
+                <div class="error-icon-wrapper">
+                    <i class="fas fa-exclamation-triangle error-icon" th:classappend="${status == 404 ? 'error-404' : (status == 403 ? 'error-403' : 'error-500')}"></i>
+                </div>
+                
+                <h1 class="error-title" th:text="${status} + ' - ' + ${error}">Error</h1>
+                
+                <p class="error-message" th:text="${message}">An error occurred</p>
+                
+                <div class="error-details" th:if="${details}">
+                    <p class="error-detail-text" th:text="${details}"></p>
+                </div>
+                
+                <div class="error-actions">
+                    <a href="/" class="btn btn-primary btn-large">
+                        <i class="fas fa-home"></i>
+                        Go Home
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline btn-large">
+                        <i class="fas fa-arrow-left"></i>
+                        Go Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+.error-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 80px);
+    padding: 40px 20px;
+}
+
+.error-card {
+    max-width: 600px;
+    width: 100%;
+    background: rgba(42, 42, 65, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+    padding: 48px 40px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.error-icon-wrapper {
+    margin-bottom: 24px;
+}
+
+.error-icon {
+    font-size: 72px;
+    margin-bottom: 0;
+    display: inline-block;
+}
+
+.error-icon.error-404 {
+    color: #ffc107;
+    animation: shake 0.5s ease-in-out;
+}
+
+.error-icon.error-403 {
+    color: #ff5722;
+}
+
+.error-icon.error-500 {
+    color: #f44336;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.error-title {
+    font-size: 36px;
+    font-weight: 800;
+    margin: 0 0 16px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.error-message {
+    font-size: 18px;
+    font-weight: 500;
+    opacity: 0.9;
+    margin: 0 0 24px 0;
+    line-height: 1.6;
+}
+
+.error-details {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 24px 0;
+}
+
+.error-detail-text {
+    font-size: 14px;
+    opacity: 0.8;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+}
+
+.error-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 32px;
+}
+
+.error-actions .btn {
+    min-width: 140px;
+}
+
+@media (max-width: 768px) {
+    .error-card {
+        padding: 32px 24px;
+    }
+    
+    .error-icon {
+        font-size: 56px;
+    }
+    
+    .error-title {
+        font-size: 28px;
+    }
+    
+    .error-message {
+        font-size: 16px;
+    }
+    
+    .error-actions {
+        flex-direction: column;
+    }
+    
+    .error-actions .btn {
+        width: 100%;
+    }
+}
+</style>
 </body>
 </html>
-

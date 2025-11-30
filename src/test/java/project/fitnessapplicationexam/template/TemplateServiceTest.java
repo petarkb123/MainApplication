@@ -34,7 +34,7 @@ class TemplateServiceTest {
 	@Mock
 	private TemplateItemRepository templateItemRepository;
 	@Mock
-	private ExerciseRepository exerciseRepositorysitory;
+	private ExerciseRepository exerciseRepository;
 
 	@InjectMocks
 	private TemplateService templateService;
@@ -67,7 +67,7 @@ class TemplateServiceTest {
 		TemplateForm form = new TemplateForm();
 		form.setName("  ");
 
-		assertThrows(IllegalArgumentException.class, () -> service.create(UUID.randomUUID(), form));
+		assertThrows(IllegalArgumentException.class, () -> templateService.create(UUID.randomUUID(), form));
 	}
 
 	@Test
@@ -78,7 +78,7 @@ class TemplateServiceTest {
 		TemplateForm form = new TemplateForm();
 		form.setName("Existing");
 
-		assertThrows(IllegalArgumentException.class, () -> service.create(owner, form));
+		assertThrows(IllegalArgumentException.class, () -> templateService.create(owner, form));
 	}
 
 	@Test
@@ -95,7 +95,7 @@ class TemplateServiceTest {
 		form.setName("Empty");
 		form.setItems(List.of());
 
-		assertThrows(IllegalArgumentException.class, () -> service.create(owner, form));
+		assertThrows(IllegalArgumentException.class, () -> templateService.create(owner, form));
 	}
 
 	@Test
@@ -116,7 +116,7 @@ class TemplateServiceTest {
 		form.setName("Test");
 		form.setItems(List.of(item));
 
-		assertThrows(IllegalArgumentException.class, () -> service.create(owner, form));
+		assertThrows(IllegalArgumentException.class, () -> templateService.create(owner, form));
 	}
 
 	@Test
@@ -259,7 +259,7 @@ class TemplateServiceTest {
 		UUID ownerId = UUID.randomUUID();
 		when(workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)).thenReturn(Optional.empty());
 
-		assertThrows(ResponseStatusException.class, () -> service.updateTemplate(templateId, ownerId, "Name", List.of()));
+		assertThrows(ResponseStatusException.class, () -> templateService.updateTemplate(templateId, ownerId, "Name", List.of()));
 	}
 
 	@Test
@@ -267,7 +267,7 @@ class TemplateServiceTest {
 		UUID ownerId = UUID.randomUUID();
 		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerId, "Existing")).thenReturn(true);
 
-		assertTrue(service.isNameTaken(ownerId, "Existing"));
+		assertTrue(templateService.isNameTaken(ownerId, "Existing"));
 	}
 
 	@Test
@@ -275,6 +275,6 @@ class TemplateServiceTest {
 		UUID ownerId = UUID.randomUUID();
 		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerId, "New")).thenReturn(false);
 
-		assertFalse(service.isNameTaken(ownerId, "New"));
+		assertFalse(templateService.isNameTaken(ownerId, "New"));
 	}
 }

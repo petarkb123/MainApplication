@@ -2,6 +2,8 @@ package project.fitnessapplicationexam.web;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,6 +37,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TemplateController {
 
+    private static final Logger log = LoggerFactory.getLogger(TemplateController.class);
     private final TemplateService templateService;
     private final UserService userService;
 
@@ -106,11 +109,10 @@ public class TemplateController {
 
         templateService.createTemplate(userId, form.getName().trim(), items);
 
+        log.info("Template '{}' created by user {}", form.getName(), userId);
         ra.addFlashAttribute("success", "Template created.");
         return "redirect:/templates";
     }
-
-
 
     @PostMapping("/{id}/delete")
     @Transactional
@@ -121,6 +123,7 @@ public class TemplateController {
 
         templateService.deleteTemplate(id, ownerId);
 
+        log.info("Template {} deleted by user {}", id, ownerId);
         ra.addFlashAttribute("success", "Template deleted.");
         return "redirect:/templates";
     }
@@ -232,6 +235,7 @@ public class TemplateController {
 
         templateService.updateTemplate(id, ownerId, newName, items);
 
+        log.info("Template {} updated by user {}: name changed to '{}'", id, ownerId, newName);
         ra.addFlashAttribute("success", "Template updated.");
         return "redirect:/templates";
     }

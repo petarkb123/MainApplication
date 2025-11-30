@@ -1,6 +1,8 @@
 package project.fitnessapplicationexam.template.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,8 @@ import project.fitnessapplicationexam.config.ValidationConstants;
 @Service
 @RequiredArgsConstructor
 public class TemplateService {
+
+    private static final Logger log = LoggerFactory.getLogger(TemplateService.class);
 
     private final WorkoutTemplateRepository workoutTemplateRepository;
     private final TemplateItemRepository templateItemRepository;
@@ -116,6 +120,7 @@ public class TemplateService {
         }
 
         templateItemRepository.saveAll(items);
+        log.info("Template '{}' created for user {} with {} exercises", name, ownerUserId, items.size());
         return template.getId();
     }
 
@@ -134,6 +139,7 @@ public class TemplateService {
             templateItemRepository.saveAll(templateItems);
         }
 
+        log.info("Template '{}' created for user {}", name, ownerId);
         return template;
     }
 
@@ -143,6 +149,7 @@ public class TemplateService {
         workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId).ifPresent(template -> {
             templateItemRepository.deleteByTemplateId(templateId);
             workoutTemplateRepository.delete(template);
+            log.info("Template '{}' deleted for user {}", template.getName(), ownerId);
         });
     }
 
@@ -152,6 +159,7 @@ public class TemplateService {
         WorkoutTemplate template = workoutTemplateRepository.findByIdAndOwnerUserId(templateId, ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
+        String oldName = template.getName();
         template.setName(newName.trim());
         workoutTemplateRepository.save(template);
 
@@ -161,6 +169,8 @@ public class TemplateService {
             List<TemplateItem> templateItems = buildTemplateItems(items, templateId, ownerId);
             templateItemRepository.saveAll(templateItems);
         }
+
+        log.info("Template updated for user {}: '{}' -> '{}'", ownerId, oldName, newName);
     }
 
     public boolean isNameTaken(UUID ownerId, String name) {

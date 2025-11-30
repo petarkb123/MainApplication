@@ -1,10 +1,13 @@
 package project.fitnessapplicationexam.common.handlers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -15,9 +18,13 @@ import project.fitnessapplicationexam.common.exceptions.WorkoutAlreadyFinishedEx
 import jakarta.validation.ConstraintViolationException;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalExceptionHandlerTest {
+
+    @Mock
+    private HttpServletRequest request;
 
     @InjectMocks
     private GlobalExceptionHandler handler;
@@ -25,9 +32,13 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleEmptyTemplate_returnsBadRequest() {
         EmptyTemplateException ex = new EmptyTemplateException("Empty template");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(request.getHeader("Accept")).thenReturn(MediaType.APPLICATION_JSON_VALUE);
         
-        ResponseEntity<Map<String, Object>> response = handler.handleEmptyTemplate(ex);
+        Object result = handler.handleEmptyTemplate(ex, request);
         
+        assertTrue(result instanceof ResponseEntity);
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) result;
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Invalid Template", response.getBody().get("error"));
@@ -37,9 +48,13 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleTemplateNameConflict_returnsBadRequest() {
         TemplateNameConflictException ex = new TemplateNameConflictException("Template exists");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(request.getHeader("Accept")).thenReturn(MediaType.APPLICATION_JSON_VALUE);
         
-        ResponseEntity<Map<String, Object>> response = handler.handleTemplateNameConflict(ex);
+        Object result = handler.handleTemplateNameConflict(ex, request);
         
+        assertTrue(result instanceof ResponseEntity);
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) result;
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Template Name Conflict", response.getBody().get("error"));
@@ -48,9 +63,13 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleInvalidAvatar_returnsBadRequest() {
         InvalidAvatarUrlException ex = new InvalidAvatarUrlException("Invalid URL");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(request.getHeader("Accept")).thenReturn(MediaType.APPLICATION_JSON_VALUE);
         
-        ResponseEntity<Map<String, Object>> response = handler.handleInvalidAvatar(ex);
+        Object result = handler.handleInvalidAvatar(ex, request);
         
+        assertTrue(result instanceof ResponseEntity);
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) result;
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Invalid Avatar URL", response.getBody().get("error"));
@@ -59,9 +78,13 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleAlreadyFinished_returnsBadRequest() {
         WorkoutAlreadyFinishedException ex = new WorkoutAlreadyFinishedException("Already finished");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(request.getHeader("Accept")).thenReturn(MediaType.APPLICATION_JSON_VALUE);
         
-        ResponseEntity<Map<String, Object>> response = handler.handleAlreadyFinished(ex);
+        Object result = handler.handleAlreadyFinished(ex, request);
         
+        assertTrue(result instanceof ResponseEntity);
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) result;
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Bad Request", response.getBody().get("error"));
@@ -70,9 +93,13 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleAccessDenied_returnsForbidden() {
         AccessDeniedException ex = new AccessDeniedException("Access denied");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(request.getHeader("Accept")).thenReturn(MediaType.APPLICATION_JSON_VALUE);
         
-        ResponseEntity<Map<String, Object>> response = handler.handleAccessDenied(ex);
+        Object result = handler.handleAccessDenied(ex, request);
         
+        assertTrue(result instanceof ResponseEntity);
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) result;
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Forbidden", response.getBody().get("error"));
@@ -81,9 +108,13 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleMethodNotAllowed_returnsMethodNotAllowed() {
         HttpRequestMethodNotSupportedException ex = new HttpRequestMethodNotSupportedException("POST");
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(request.getHeader("Accept")).thenReturn(MediaType.APPLICATION_JSON_VALUE);
         
-        ResponseEntity<Map<String, Object>> response = handler.handleMethodNotAllowed(ex);
+        Object result = handler.handleMethodNotAllowed(ex, request);
         
+        assertTrue(result instanceof ResponseEntity);
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) result;
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Method Not Allowed", response.getBody().get("error"));
@@ -92,9 +123,13 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleConstraintViolation_returnsBadRequest() {
         ConstraintViolationException ex = new ConstraintViolationException("Constraint violated", new HashSet<>());
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(request.getHeader("Accept")).thenReturn(MediaType.APPLICATION_JSON_VALUE);
         
-        ResponseEntity<Map<String, Object>> response = handler.handleConstraintViolation(ex);
+        Object result = handler.handleConstraintViolation(ex, request);
         
+        assertTrue(result instanceof ResponseEntity);
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) result;
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Constraint Violation", response.getBody().get("error"));

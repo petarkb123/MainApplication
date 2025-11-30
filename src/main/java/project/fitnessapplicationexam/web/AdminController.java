@@ -1,6 +1,8 @@
 package project.fitnessapplicationexam.web;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminController.class);
     private final UserRepository userRepository;
     private final UserSubscriptionService userSubscriptionService;
     private final UserService userService;
@@ -48,6 +51,7 @@ public class AdminController {
         userRepository.findById(id).ifPresent(user -> {
             user.setActive(false);
             userRepository.save(user);
+            log.info("Account deactivated by admin: user {}", id);
         });
         ra.addFlashAttribute("successMessage", "Account deactivated.");
         return "redirect:/admin/users";
@@ -58,6 +62,7 @@ public class AdminController {
         userRepository.findById(id).ifPresent(user -> {
             user.setActive(true);
             userRepository.save(user);
+            log.info("Account activated by admin: user {}", id);
         });
         ra.addFlashAttribute("successMessage", "Account activated.");
         return "redirect:/admin/users";
@@ -127,6 +132,7 @@ public class AdminController {
         userRepository.findById(id).ifPresent(user -> {
             user.setRole(UserRole.ADMIN);
             userRepository.save(user);
+            log.info("User {} promoted to admin by {}", id, currentUser.getUsername());
         });
         ra.addFlashAttribute("successMessage", "User promoted to admin.");
         return "redirect:/admin/users";
@@ -145,6 +151,7 @@ public class AdminController {
         userRepository.findById(id).ifPresent(user -> {
             user.setRole(UserRole.USER);
             userRepository.save(user);
+            log.info("Admin status removed from user {} by {}", id, currentUser.getUsername());
         });
         ra.addFlashAttribute("successMessage", "Admin status removed.");
         return "redirect:/admin/users";

@@ -1,6 +1,8 @@
 package project.fitnessapplicationexam.web;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +32,6 @@ import project.fitnessapplicationexam.user.model.User;
 import project.fitnessapplicationexam.user.model.UserRole;
 import project.fitnessapplicationexam.user.model.SubscriptionTier;
 import project.fitnessapplicationexam.exercise.model.Exercise;
-import org.springframework.dao.DataIntegrityViolationException;
 import project.fitnessapplicationexam.template.model.TemplateItem;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +48,7 @@ import project.fitnessapplicationexam.config.ValidationConstants;
 @RequiredArgsConstructor
 public class WorkoutController {
 
+    private static final Logger log = LoggerFactory.getLogger(WorkoutController.class);
     private final WorkoutService workoutService;
     private final TemplateService templateService;
     private final UserService userService;
@@ -140,11 +142,7 @@ public class WorkoutController {
     @RequestMapping(value = "/{id}/finish", method = {RequestMethod.GET, RequestMethod.POST})
     public String finishQuick(@PathVariable UUID id, @AuthenticationPrincipal UserDetails me) {
         User user = userService.findByUsernameOrThrow(me.getUsername());
-        try {
-            workoutService.finishSessionWithSets(id, user.getId(), null);
-        } catch (Exception e) {
-            workoutService.finishSession(id, user.getId());
-        }
+        workoutService.finishSessionWithFallback(id, user.getId());
         return "redirect:/workouts";
     }
 
@@ -160,21 +158,9 @@ public class WorkoutController {
         User user = userService.findByUsernameOrThrow(me.getUsername());
         List<ExerciseSetData> exerciseSets = mapToExerciseSetData(body.getExercises());
         
-        try {
-            workoutService.finishSessionWithSets(body.getSessionId(), user.getId(), exerciseSets);
-            return ResponseEntity.ok().build();
-        } catch (ResponseStatusException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Session not found");
-            }
-            return ResponseEntity.badRequest().body(e.getReason());
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid workout data: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
-        }
+        workoutService.finishSessionWithSets(body.getSessionId(), user.getId(), exerciseSets);
+        log.info("Workout session {} finished by user {} via API", body.getSessionId(), user.getId());
+        return ResponseEntity.ok().build();
     }
 
 
@@ -219,14 +205,9 @@ public class WorkoutController {
                                 @AuthenticationPrincipal UserDetails me,
                                 RedirectAttributes ra) {
         User user = userService.findByUsernameOrThrow(me.getUsername());
-
-        try {
-            workoutService.deleteSession(id, user.getId());
-            ra.addFlashAttribute("success", "Workout deleted.");
-        } catch (ResponseStatusException e) {
-            ra.addFlashAttribute("error", "Workout not found.");
-        }
-
+        workoutService.deleteSession(id, user.getId());
+        log.info("Workout session {} deleted by user {}", id, user.getId());
+        ra.addFlashAttribute("success", "Workout deleted.");
         return "redirect:/workouts";
     }
 

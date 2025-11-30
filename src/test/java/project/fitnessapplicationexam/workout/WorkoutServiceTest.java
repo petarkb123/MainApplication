@@ -31,7 +31,7 @@ class WorkoutServiceTest {
 
 	@Mock private WorkoutSessionRepository workoutSessionRepository;
 	@Mock private WorkoutSetRepository workoutSetRepository;
-	@Mock private ExerciseRepository exerciseRepositorysitory;
+	@Mock private ExerciseRepository exerciseRepository;
 	@Mock private AnalyticsSyncService analyticsSyncService;
 	@InjectMocks private WorkoutService workoutService;
 
@@ -67,7 +67,7 @@ class WorkoutServiceTest {
 		s.setId(id);
 		s.setUserId(UUID.randomUUID());
 		when(workoutSessionRepository.findById(id)).thenReturn(Optional.of(s));
-		assertThrows(ResponseStatusException.class, () -> service.deleteSession(id, user));
+		assertThrows(ResponseStatusException.class, () -> workoutService.deleteSession(id, user));
 	}
 
 	@Test
@@ -253,7 +253,7 @@ class WorkoutServiceTest {
 		UUID userId = UUID.randomUUID();
 		when(workoutSessionRepository.findById(sessionId)).thenReturn(Optional.empty());
 
-		assertThrows(ResponseStatusException.class, () -> service.deleteSession(sessionId, userId));
+		assertThrows(ResponseStatusException.class, () -> workoutService.deleteSession(sessionId, userId));
 	}
 }
 

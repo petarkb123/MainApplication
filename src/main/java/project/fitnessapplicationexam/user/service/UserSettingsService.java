@@ -1,6 +1,8 @@
 package project.fitnessapplicationexam.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,7 @@ import project.fitnessapplicationexam.config.ValidationConstants;
 @Transactional
 public class UserSettingsService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserSettingsService.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -38,6 +41,7 @@ public class UserSettingsService {
         }
         user.setProfilePicture(trimmedUrl);
         userRepository.save(user);
+        log.info("Avatar URL updated for user {}", userId);
     }
 
     @Transactional
@@ -45,6 +49,7 @@ public class UserSettingsService {
         User user = userRepository.findById(userId).orElseThrow();
         user.setProfilePicture(null);
         userRepository.save(user);
+        log.info("Avatar removed for user {}", userId);
     }
 
     @Transactional
@@ -61,5 +66,6 @@ public class UserSettingsService {
         }
         user.setPasswordHash(passwordEncoder.encode(newRaw));
         userRepository.save(user);
+        log.info("Password changed for user {}", userId);
     }
 }

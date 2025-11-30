@@ -1,6 +1,8 @@
 package project.fitnessapplicationexam.workout.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,8 @@ import project.fitnessapplicationexam.config.ValidationConstants;
 @Service
 @RequiredArgsConstructor
 public class WorkoutService {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkoutService.class);
 
     private final WorkoutSessionRepository workoutSessionRepository;
     private final WorkoutSetRepository workoutSetRepository;
@@ -86,20 +90,41 @@ public class WorkoutService {
         WorkoutSession session = new WorkoutSession();
         session.setUserId(user);
         session.setStartedAt(LocalDateTime.now());
-        return workoutSessionRepository.save(session);
+        WorkoutSession saved = workoutSessionRepository.save(session);
+        log.info("Workout session started for user {}: {}", user, saved.getId());
+        return saved;
     }
 
     @Transactional
     public void finishSession(UUID sessionId, UUID userId) {
-        workoutSessionRepository.findById(sessionId).ifPresent(session -> {
-            if (Objects.equals(session.getUserId(), userId) && session.getFinishedAt() == null) {
-                session.setFinishedAt(LocalDateTime.now());
-                session.setStatus(SessionStatus.FINISHED);
-                workoutSessionRepository.save(session);
-                List<WorkoutSet> syncedSets = workoutSetRepository.findAllBySessionId(sessionId);
-                analyticsSyncService.syncWorkout(session, syncedSets);
-            }
-        });
+        WorkoutSession session = workoutSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+        
+        if (!Objects.equals(session.getUserId(), userId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");
+        }
+        
+        if (session.getFinishedAt() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session already finished");
+        }
+        
+        session.setFinishedAt(LocalDateTime.now());
+        session.setStatus(SessionStatus.FINISHED);
+        workoutSessionRepository.save(session);
+        List<WorkoutSet> syncedSets = workoutSetRepository.findAllBySessionId(sessionId);
+        analyticsSyncService.syncWorkout(session, syncedSets);
+        log.info("Workout session {} finished for user {}", sessionId, userId);
+    }
+    
+    @Transactional
+    @CacheEvict(value = {"workoutSessions", "weeklyStats"}, allEntries = true)
+    public void finishSessionWithFallback(UUID sessionId, UUID userId) {
+        try {
+            finishSessionWithSets(sessionId, userId, null);
+        } catch (Exception e) {
+            log.debug("Fallback to simple finish for session {}", sessionId);
+            finishSession(sessionId, userId);
+        }
     }
     
     @Transactional
@@ -173,6 +198,7 @@ public class WorkoutService {
 
         List<WorkoutSet> syncedSets = workoutSetRepository.findAllBySessionId(sessionId);
         analyticsSyncService.syncWorkout(session, syncedSets);
+        log.info("Workout session {} finished for user {} with {} sets", sessionId, userId, syncedSets.size());
     }
 
     @Transactional
@@ -188,5 +214,6 @@ public class WorkoutService {
         workoutSetRepository.deleteBySessionId(sessionId);
         workoutSessionRepository.deleteById(sessionId);
         analyticsSyncService.deleteWorkout(sessionId);
+        log.info("Workout session {} deleted for user {}", sessionId, userId);
     }
 }

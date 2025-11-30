@@ -53,8 +53,10 @@ public class StatsApiController {
         boolean microserviceAvailable = true;
 
         try {
-            TrainingFrequencyResponse trainingFrequency = getBodyOrNull(analyticsClient.getTrainingFrequency(userId, start, end));
-            response.put("trainingFrequency", trainingFrequency != null ? trainingFrequency : createEmptyTrainingFrequency());
+            ResponseEntity<TrainingFrequencyResponse> trainingFrequencyResponse = analyticsClient.getTrainingFrequency(userId, start, end);
+            response.put("trainingFrequency", trainingFrequencyResponse != null && trainingFrequencyResponse.getBody() != null 
+                    ? trainingFrequencyResponse.getBody() 
+                    : createEmptyTrainingFrequency());
         } catch (Exception e) {
             microserviceAvailable = false;
             response.put("trainingFrequency", createEmptyTrainingFrequency());
@@ -62,8 +64,10 @@ public class StatsApiController {
         }
 
         try {
-            List<ExerciseVolumeTrendDto> volumeTrends = getBodyOrNull(analyticsClient.getExerciseVolumeTrends(userId, start, end));
-            response.put("volumeTrends", volumeTrends != null ? volumeTrends : List.of());
+            ResponseEntity<List<ExerciseVolumeTrendDto>> volumeTrendsResponse = analyticsClient.getExerciseVolumeTrends(userId, start, end);
+            response.put("volumeTrends", volumeTrendsResponse != null && volumeTrendsResponse.getBody() != null 
+                    ? volumeTrendsResponse.getBody() 
+                    : List.of());
         } catch (Exception e) {
             microserviceAvailable = false;
             response.put("volumeTrends", List.of());
@@ -71,8 +75,10 @@ public class StatsApiController {
         }
 
         try {
-            List<ProgressiveOverloadDto> progressiveOverload = getBodyOrNull(analyticsClient.getProgressiveOverload(userId, start, end));
-            response.put("progressiveOverload", progressiveOverload != null ? progressiveOverload : List.of());
+            ResponseEntity<List<ProgressiveOverloadDto>> progressiveOverloadResponse = analyticsClient.getProgressiveOverload(userId, start, end);
+            response.put("progressiveOverload", progressiveOverloadResponse != null && progressiveOverloadResponse.getBody() != null 
+                    ? progressiveOverloadResponse.getBody() 
+                    : List.of());
         } catch (Exception e) {
             microserviceAvailable = false;
             response.put("progressiveOverload", List.of());
@@ -80,8 +86,10 @@ public class StatsApiController {
         }
 
         try {
-            PersonalRecordsDto personalRecords = getBodyOrNull(analyticsClient.getPersonalRecords(userId));
-            response.put("personalRecords", personalRecords != null ? personalRecords : new PersonalRecordsDto(List.of(), List.of()));
+            ResponseEntity<PersonalRecordsDto> personalRecordsResponse = analyticsClient.getPersonalRecords(userId);
+            response.put("personalRecords", personalRecordsResponse != null && personalRecordsResponse.getBody() != null 
+                    ? personalRecordsResponse.getBody() 
+                    : new PersonalRecordsDto(List.of(), List.of()));
         } catch (Exception e) {
             microserviceAvailable = false;
             response.put("personalRecords", new PersonalRecordsDto(List.of(), List.of()));
@@ -89,8 +97,10 @@ public class StatsApiController {
         }
 
         try {
-            List<MilestoneDto> milestones = getBodyOrNull(analyticsClient.getMilestones(userId));
-            response.put("milestones", milestones != null ? milestones : List.of());
+            ResponseEntity<List<MilestoneDto>> milestonesResponse = analyticsClient.getMilestones(userId);
+            response.put("milestones", milestonesResponse != null && milestonesResponse.getBody() != null 
+                    ? milestonesResponse.getBody() 
+                    : List.of());
         } catch (Exception e) {
             microserviceAvailable = false;
             response.put("milestones", List.of());
@@ -102,10 +112,6 @@ public class StatsApiController {
         response.put("to", end);
 
         return ResponseEntity.ok(response);
-    }
-
-    private <T> T getBodyOrNull(org.springframework.http.ResponseEntity<T> response) {
-        return response != null ? response.getBody() : null;
     }
 
     private TrainingFrequencyResponse createEmptyTrainingFrequency() {

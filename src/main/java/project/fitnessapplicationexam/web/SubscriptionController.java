@@ -1,6 +1,8 @@
 package project.fitnessapplicationexam.web;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SubscriptionController {
 
+    private static final Logger log = LoggerFactory.getLogger(SubscriptionController.class);
     private final UserSubscriptionService subscriptions;
     private final UserService userService;
 
@@ -44,9 +47,11 @@ public class SubscriptionController {
         UUID id = userService.findByUsernameOrThrow(me.getUsername()).getId();
         if (tier == SubscriptionTier.BASIC) {
             subscriptions.activateBasic(id);
+            log.info("User {} switched to BASIC subscription", id);
             ra.addFlashAttribute("successMessage", "You are now on the Basic plan.");
         } else {
             subscriptions.activatePro(id);
+            log.info("User {} switched to PRO subscription", id);
             ra.addFlashAttribute("successMessage", "You are now on the Pro plan. Enjoy advanced methods!");
         }
         return "redirect:/subscription";

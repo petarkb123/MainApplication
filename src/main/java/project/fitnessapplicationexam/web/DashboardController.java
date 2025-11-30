@@ -7,8 +7,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import project.fitnessapplicationexam.analytics.client.AnalyticsClient;
+import project.fitnessapplicationexam.analytics.dto.RecomputeWeeklyRequest;
 import project.fitnessapplicationexam.analytics.dto.WeeklySummaryResponse;
 import project.fitnessapplicationexam.user.service.UserService;
 import project.fitnessapplicationexam.user.model.User;
@@ -38,8 +40,20 @@ public class DashboardController {
         LocalDate startOfWeek = today.with(DayOfWeek.MONDAY);
         LocalDate endOfWeek = startOfWeek.plusDays(6);
 
-        WeeklySummaryResponse weeklySummary = fetchWeeklySummary(userId, startOfWeek, endOfWeek);
-        if (weeklySummary == null) {
+        try {
+            analyticsClient.recomputeWeeklyStats(userId, new RecomputeWeeklyRequest(startOfWeek, endOfWeek));
+        } catch (Exception e) {
+            log.warn("Failed to refresh weekly stats in analytics microservice for user {}", userId, e);
+        }
+
+        WeeklySummaryResponse weeklySummary;
+        try {
+            ResponseEntity<WeeklySummaryResponse> response = analyticsClient.getWeeklyStats(userId, startOfWeek, endOfWeek);
+            weeklySummary = response != null && response.getBody() != null 
+                    ? response.getBody() 
+                    : new WeeklySummaryResponse(startOfWeek, endOfWeek, Collections.emptyList());
+        } catch (Exception e) {
+            log.error("Error calling analytics microservice for user {}", userId, e);
             weeklySummary = new WeeklySummaryResponse(startOfWeek, endOfWeek, Collections.emptyList());
         }
         
@@ -47,25 +61,6 @@ public class DashboardController {
         model.addAttribute("summary", weeklySummary);
         model.addAttribute("recentWorkouts", workoutService.getRecentSessions(userId, ValidationConstants.RECENT_SESSIONS_LIMIT_5));
         return "dashboard";
-    }
-
-    private WeeklySummaryResponse fetchWeeklySummary(UUID userId, LocalDate start, LocalDate end) {
-        try {
-            var response = analyticsClient.getWeeklyStats(userId, start, end);
-            WeeklySummaryResponse summary = response != null ? response.getBody() : null;
-            if (summary == null) {
-                log.warn("Analytics microservice returned null response for user {}", userId);
-            } else {
-                int totalSessions = summary.days().stream()
-                        .mapToInt(WeeklySummaryResponse.DayStat::sessions)
-                        .sum();
-                log.debug("Analytics data received: {} days, total sessions: {}", summary.days().size(), totalSessions);
-            }
-            return summary;
-        } catch (Exception e) {
-            log.error("Error calling analytics microservice for user {}", userId, e);
-            return null;
-        }
     }
 
     private void addCommonAttributes(Model model, User user) {

@@ -1,6 +1,8 @@
 package project.fitnessapplicationexam.web;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -26,6 +28,7 @@ import java.util.UUID;
 @Controller
 @Validated
 public class ExerciseController {
+    private static final Logger log = LoggerFactory.getLogger(ExerciseController.class);
     private final ExerciseService exerciseService;
     private final UserService userService;
 
@@ -76,6 +79,7 @@ public class ExerciseController {
         UUID ownerId = userService.findByUsernameOrThrow(me.getUsername()).getId();
         exerciseService.findByIdAndOwnerUserId(id, ownerId).ifPresent(exercise -> {
             exerciseService.delete(id);
+            log.info("Exercise '{}' deleted by user {}", exercise.getName(), ownerId);
         });
         return "redirect:/exercises";
     }
