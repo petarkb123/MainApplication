@@ -50,15 +50,6 @@ class AuthControllerTest {
 
     @Test
     void register_success_redirectsToLogin() throws Exception {
-        User user = User.builder()
-                .id(UUID.randomUUID())
-                .username("testuser")
-                .role(UserRole.USER)
-                .build();
-
-        when(userService.register(anyString(), anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(user);
-
         mockMvc.perform(post("/register")
                         .param("username", "testuser")
                         .param("password", "password123")
@@ -74,22 +65,17 @@ class AuthControllerTest {
     }
 
     @Test
-    void register_validationError_returnsRegisterPage() throws Exception {
-        when(userService.register(anyString(), anyString(), anyString(), anyString(), anyString()))
-                .thenThrow(new IllegalArgumentException("Username already exists"));
-
+    void register_withMissingRequiredField_returnsRegisterPage() throws Exception {
         mockMvc.perform(post("/register")
                         .param("username", "existinguser")
                         .param("password", "password123")
-                        .param("email", "test@example.com")
                         .param("firstName", "Test")
                         .param("lastName", "User")
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("register"))
-                .andExpect(model().attributeExists("error"));
+                .andExpect(view().name("register"));
 
-        verify(userService).register(anyString(), anyString(), anyString(), anyString(), anyString());
+        verifyNoInteractions(userService);
     }
 }
 
