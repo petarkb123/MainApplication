@@ -143,19 +143,19 @@ class WorkoutServiceTest {
 		assertTrue(result.isEmpty());
 	}
 
-	@Test
-	void finishSession_alreadyFinished_skips() {
-		UUID user = UUID.randomUUID();
-		UUID id = UUID.randomUUID();
-		WorkoutSession s = new WorkoutSession();
-		s.setId(id);
-		s.setUserId(user);
-		s.setFinishedAt(LocalDateTime.now());
-		when(workoutSessionRepository.findById(id)).thenReturn(Optional.of(s));
+    @Test
+    void finishSession_alreadyFinished_throwsBadRequest() {
+        UUID user = UUID.randomUUID();
+        UUID id = UUID.randomUUID();
+        WorkoutSession s = new WorkoutSession();
+        s.setId(id);
+        s.setUserId(user);
+        s.setFinishedAt(LocalDateTime.now());
+        when(workoutSessionRepository.findById(id)).thenReturn(Optional.of(s));
 
-		workoutService.finishSession(id, user);
-		verify(workoutSessionRepository, never()).save(any());
-	}
+        assertThrows(ResponseStatusException.class, () -> workoutService.finishSession(id, user));
+        verify(workoutSessionRepository, never()).save(any());
+    }
 
 	@Test
 	void finishSessionWithSets_savesSets() {

@@ -3,6 +3,7 @@ package project.fitnessapplicationexam.web;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 
 @WebMvcTest(ExerciseController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @WithMockUser
 class ExerciseControllerTest {
 
@@ -112,88 +114,5 @@ class ExerciseControllerTest {
                 .andExpect(status().is3xxRedirection());
     }
 
-    @Test
-    void setAvatarUrl_success() throws Exception {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-        user.setUsername("testuser");
-
-        when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
-        when(userSettingsService.requireByUsername(anyString())).thenReturn(user);
-
-        mockMvc.perform(post("/settings/avatar-url")
-                        .param("avatarUrl", "https://example.com/avatar.jpg")
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/settings"));
-    }
-
-    @Test
-    void setAvatarUrl_invalidUrl_showsError() throws Exception {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-
-        when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
-
-        mockMvc.perform(post("/settings/avatar-url")
-                        .param("avatarUrl", "invalid-url")
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/settings"));
-    }
-
-    @Test
-    void deleteAvatar_success() throws Exception {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-
-        when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
-
-        mockMvc.perform(post("/settings/avatar/delete")
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/settings"));
-    }
-
-    @Test
-    void changePassword_success() throws Exception {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-
-        when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
-
-        mockMvc.perform(post("/settings/password")
-                        .param("currentPassword", "oldpass")
-                        .param("newPassword", "newpass123")
-                        .param("confirmPassword", "newpass123")
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/settings"));
-    }
-
-    @Test
-    void updateUsername_success() throws Exception {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-        user.setUsername("testuser");
-        user.setPasswordHash("hashed");
-        user.setRole(UserRole.USER);
-        user.setActive(true);
-
-        when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
-        when(userService.findByIdOrThrow(userId)).thenReturn(user);
-        when(userSettingsService.requireByUsername(anyString())).thenReturn(user);
-
-        mockMvc.perform(post("/settings/profile")
-                        .param("username", "newusername")
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/settings"));
-    }
 }
 

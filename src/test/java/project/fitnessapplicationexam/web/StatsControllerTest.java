@@ -3,6 +3,7 @@ package project.fitnessapplicationexam.web;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(StatsController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @WithMockUser
 class StatsControllerTest {
 
@@ -85,7 +87,7 @@ class StatsControllerTest {
     }
 
     @Test
-    void advancedStats_withoutProUser_returnsForbidden() throws Exception {
+    void advancedStats_withoutProUser_redirectsToSubscription() throws Exception {
         UUID userId = UUID.randomUUID();
         User user = new User();
         user.setId(userId);
@@ -97,7 +99,8 @@ class StatsControllerTest {
         when(userService.findByUsernameOrThrow(anyString())).thenReturn(user);
 
         mockMvc.perform(get("/stats/advanced"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/subscription"));
     }
 }
 

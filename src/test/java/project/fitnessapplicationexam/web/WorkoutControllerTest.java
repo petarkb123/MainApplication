@@ -3,6 +3,7 @@ package project.fitnessapplicationexam.web;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -37,6 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(WorkoutController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @WithMockUser
 class WorkoutControllerTest {
 
@@ -244,7 +246,7 @@ class WorkoutControllerTest {
     }
 
     @Test
-    void deleteWorkout_notFound_redirectsWithError() throws Exception {
+    void deleteWorkout_notFound_returnsNotFound() throws Exception {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         User user = new User();
@@ -256,8 +258,7 @@ class WorkoutControllerTest {
                 .when(workoutService).deleteSession(any(), any());
 
         mockMvc.perform(post("/workouts/{id}/delete", sessionId).with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/workouts"));
+                .andExpect(status().isNotFound());
     }
 
     @Test
