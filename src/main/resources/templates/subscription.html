@@ -99,16 +99,7 @@
 
     <main class="main-content">
         <header class="top-header">
-            <div class="header-left">
-                <div class="user-profile mobile-profile">
-                    <div class="profile-avatar avatar-preview">
-                        <img th:if="${navAvatar}" th:src="${navAvatar}" alt="Profile Picture" class="avatar-image">
-                        <div class="avatar-placeholder" th:unless="${navAvatar}" style="display:flex;"><i class="fas fa-user"></i></div>
-                    </div>
-                    <div class="profile-info"><span class="profile-name" th:text="${username}">User</span></div>
-                </div>
                 <h1 class="page-title">Subscription</h1>
-            </div>
             <div class="header-right">
                 <div class="user-profile desktop-profile">
                     <div class="profile-avatar avatar-preview">
