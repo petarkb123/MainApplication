@@ -17,18 +17,14 @@ import project.fitnessapplicationexam.template.model.TemplateItem;
 import project.fitnessapplicationexam.template.model.WorkoutTemplate;
 import project.fitnessapplicationexam.template.repository.TemplateItemRepository;
 import project.fitnessapplicationexam.template.repository.WorkoutTemplateRepository;
-import project.fitnessapplicationexam.template.form.TemplateForm;
-import project.fitnessapplicationexam.template.form.TemplateItemForm;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import project.fitnessapplicationexam.config.ValidationConstants;
 
 @Service
 @RequiredArgsConstructor
@@ -71,75 +67,31 @@ public class TemplateService {
 
     @Transactional
     @CacheEvict(value = {"templates", "exercises"}, allEntries = true)
-    public UUID create(UUID ownerUserId, TemplateForm form) {
-        String name = (form.getName() == null) ? "" : form.getName().trim();
-        if (name.isBlank()) {
+    public WorkoutTemplate createTemplate(UUID ownerId, String name, List<TemplateItemData> items) {
+        String trimmedName = (name == null) ? "" : name.trim();
+        if (trimmedName.isBlank()) {
             throw new IllegalArgumentException("Template name is required.");
         }
-        if (workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerUserId, name)) {
+        
+        if (workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerId, trimmedName)) {
             throw new IllegalArgumentException("You already have a template with that name.");
         }
 
-        WorkoutTemplate template = workoutTemplateRepository.save(
-                WorkoutTemplate.builder()
-                        .ownerUserId(ownerUserId)
-                        .name(name)
-                        .build()
-        );
-
-        List<TemplateItemForm> rows = new ArrayList<>(
-                Optional.ofNullable(form.getItems()).orElse(List.of())
-        );
-        rows.removeIf(row -> row == null || row.getExerciseId() == null);
-        if (rows.isEmpty()) {
+        if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("Add at least one exercise.");
         }
 
-        List<TemplateItem> items = new ArrayList<>(rows.size());
-        for (TemplateItemForm row : rows) {
-            exerciseRepository.findById(row.getExerciseId())
-                    .filter(exercise -> exercise.getOwnerUserId().equals(ownerUserId)
-                            || exercise.getOwnerUserId().equals(SystemDefault.SYSTEM_USER_ID))
-                    .orElseThrow(() -> new IllegalArgumentException("Exercise not found or not allowed."));
-
-            int sets = (row.getSets() == null) ? ValidationConstants.DEFAULT_TEMPLATE_SETS 
-                    : Math.max(ValidationConstants.MIN_TEMPLATE_SETS, Math.min(ValidationConstants.MAX_TEMPLATE_SETS, row.getSets()));
-            Integer order = (row.getOrderIndex() == null) ? Integer.MAX_VALUE : Math.max(0, row.getOrderIndex());
-
-            items.add(TemplateItem.builder()
-                    .templateId(template.getId())
-                    .exerciseId(row.getExerciseId())
-                    .targetSets(sets)
-                    .position(order)
-                    .build());
-        }
-
-        items.sort(Comparator.comparing(TemplateItem::getPosition));
-        for (int i = 0; i < items.size(); i++) {
-            items.get(i).setPosition(i);
-        }
-
-        templateItemRepository.saveAll(items);
-        log.info("Template '{}' created for user {} with {} exercises", name, ownerUserId, items.size());
-        return template.getId();
-    }
-
-    @Transactional
-    @CacheEvict(value = {"templates", "exercises"}, allEntries = true)
-    public WorkoutTemplate createTemplate(UUID ownerId, String name, List<TemplateItemData> items) {
         WorkoutTemplate template = WorkoutTemplate.builder()
                 .ownerUserId(ownerId)
-                .name(name.trim())
+                .name(trimmedName)
                 .createdOn(LocalDateTime.now())
                 .build();
         workoutTemplateRepository.save(template);
 
-        if (items != null && !items.isEmpty()) {
-            List<TemplateItem> templateItems = buildTemplateItems(items, template.getId(), ownerId);
-            templateItemRepository.saveAll(templateItems);
-        }
+        List<TemplateItem> templateItems = buildTemplateItems(items, template.getId(), ownerId);
+        templateItemRepository.saveAll(templateItems);
 
-        log.info("Template '{}' created for user {}", name, ownerId);
+        log.info("Template '{}' created for user {} with {} exercises", trimmedName, ownerId, templateItems.size());
         return template;
     }
 

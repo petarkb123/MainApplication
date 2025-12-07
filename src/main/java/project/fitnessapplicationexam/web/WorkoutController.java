@@ -142,7 +142,7 @@ public class WorkoutController {
     @RequestMapping(value = "/{id}/finish", method = {RequestMethod.GET, RequestMethod.POST})
     public String finishQuick(@PathVariable UUID id, @AuthenticationPrincipal UserDetails me) {
         User user = userService.findByUsernameOrThrow(me.getUsername());
-        workoutService.finishSessionWithFallback(id, user.getId());
+        workoutService.finishSession(id, user.getId());
         return "redirect:/workouts";
     }
 

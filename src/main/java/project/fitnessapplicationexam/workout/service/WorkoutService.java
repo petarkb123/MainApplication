@@ -96,6 +96,7 @@ public class WorkoutService {
     }
 
     @Transactional
+    @CacheEvict(value = {"workoutSessions", "weeklyStats"}, allEntries = true)
     public void finishSession(UUID sessionId, UUID userId) {
         WorkoutSession session = workoutSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
@@ -114,17 +115,6 @@ public class WorkoutService {
         List<WorkoutSet> syncedSets = workoutSetRepository.findAllBySessionId(sessionId);
         analyticsSyncService.syncWorkout(session, syncedSets);
         log.info("Workout session {} finished for user {}", sessionId, userId);
-    }
-    
-    @Transactional
-    @CacheEvict(value = {"workoutSessions", "weeklyStats"}, allEntries = true)
-    public void finishSessionWithFallback(UUID sessionId, UUID userId) {
-        try {
-            finishSessionWithSets(sessionId, userId, null);
-        } catch (Exception e) {
-            log.debug("Fallback to simple finish for session {}", sessionId);
-            finishSession(sessionId, userId);
-        }
     }
     
     @Transactional

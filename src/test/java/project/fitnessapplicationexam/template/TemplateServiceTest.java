@@ -7,8 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 import project.fitnessapplicationexam.template.dto.TemplateItemData;
-import project.fitnessapplicationexam.template.form.TemplateForm;
-import project.fitnessapplicationexam.template.form.TemplateItemForm;
 import project.fitnessapplicationexam.template.model.TemplateItem;
 import project.fitnessapplicationexam.template.model.WorkoutTemplate;
 import project.fitnessapplicationexam.template.repository.TemplateItemRepository;
@@ -40,83 +38,69 @@ class TemplateServiceTest {
 	private TemplateService templateService;
 
 	@Test
-	void create_success() {
+	void createTemplate_success() {
 		UUID owner = UUID.randomUUID();
+		UUID exerciseId = UUID.randomUUID();
 		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(eq(owner), eq("Push"))).thenReturn(false);
 		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
 			WorkoutTemplate t = inv.getArgument(0);
 			t.setId(UUID.randomUUID());
 			return t;
 		});
-		when(exerciseRepository.findById(any(UUID.class))).thenReturn(Optional.of(Exercise.builder().ownerUserId(owner).build()));
+		when(exerciseRepository.findAllById(anyList())).thenReturn(List.of(Exercise.builder()
+				.id(exerciseId)
+				.ownerUserId(owner)
+				.build()));
 
-		TemplateItemForm item = new TemplateItemForm();
-		item.setExerciseId(UUID.randomUUID());
-		item.setSets(3);
-		TemplateForm form = new TemplateForm();
-		form.setName("Push");
-		form.setItems(List.of(item));
-
-		UUID id = templateService.create(owner, form);
-		assertNotNull(id);
+		TemplateItemData item = new TemplateItemData(exerciseId, 3, 0, null, null, null, null);
+		WorkoutTemplate result = templateService.createTemplate(owner, "Push", List.of(item));
+		assertNotNull(result);
 		verify(templateItemRepository).saveAll(anyList());
 	}
 
 	@Test
-	void create_emptyName_throwsException() {
-		TemplateForm form = new TemplateForm();
-		form.setName("  ");
-
-		assertThrows(IllegalArgumentException.class, () -> templateService.create(UUID.randomUUID(), form));
+	void createTemplate_emptyName_throwsException() {
+		UUID exerciseId = UUID.randomUUID();
+		TemplateItemData item = new TemplateItemData(exerciseId, 3, 0, null, null, null, null);
+		assertThrows(IllegalArgumentException.class, () -> templateService.createTemplate(UUID.randomUUID(), "  ", List.of(item)));
 	}
 
 	@Test
-	void create_duplicateName_throwsException() {
+	void createTemplate_duplicateName_throwsException() {
 		UUID owner = UUID.randomUUID();
 		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(owner, "Existing")).thenReturn(true);
 
-		TemplateForm form = new TemplateForm();
-		form.setName("Existing");
-
-		assertThrows(IllegalArgumentException.class, () -> templateService.create(owner, form));
+		UUID exerciseId = UUID.randomUUID();
+		TemplateItemData item = new TemplateItemData(exerciseId, 3, 0, null, null, null, null);
+		assertThrows(IllegalArgumentException.class, () -> templateService.createTemplate(owner, "Existing", List.of(item)));
 	}
 
 	@Test
-	void create_noExercises_throwsException() {
+	void createTemplate_noExercises_throwsException() {
 		UUID owner = UUID.randomUUID();
 		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(owner, "Empty")).thenReturn(false);
-		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
-			WorkoutTemplate t = inv.getArgument(0);
-			t.setId(UUID.randomUUID());
-			return t;
-		});
 
-		TemplateForm form = new TemplateForm();
-		form.setName("Empty");
-		form.setItems(List.of());
-
-		assertThrows(IllegalArgumentException.class, () -> templateService.create(owner, form));
+		assertThrows(IllegalArgumentException.class, () -> templateService.createTemplate(owner, "Empty", List.of()));
 	}
 
 	@Test
-	void create_exerciseNotAllowed_throwsException() {
+	void createTemplate_exerciseNotAllowed_throwsException() {
 		UUID owner = UUID.randomUUID();
 		UUID otherOwner = UUID.randomUUID();
+		UUID exerciseId = UUID.randomUUID();
 		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(owner, "Test")).thenReturn(false);
 		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenAnswer(inv -> {
 			WorkoutTemplate t = inv.getArgument(0);
 			t.setId(UUID.randomUUID());
 			return t;
 		});
-		when(exerciseRepository.findById(any(UUID.class))).thenReturn(Optional.of(Exercise.builder().ownerUserId(otherOwner).build()));
+		when(exerciseRepository.findAllById(anyList())).thenReturn(List.of(Exercise.builder()
+				.id(exerciseId)
+				.ownerUserId(otherOwner)
+				.build()));
 
-		TemplateItemForm item = new TemplateItemForm();
-		item.setExerciseId(UUID.randomUUID());
-		TemplateForm form = new TemplateForm();
-		form.setName("Test");
-		form.setItems(List.of(item));
-
-		assertThrows(IllegalArgumentException.class, () -> templateService.create(owner, form));
+		TemplateItemData item = new TemplateItemData(exerciseId, 3, 0, null, null, null, null);
+		assertThrows(IllegalArgumentException.class, () -> templateService.createTemplate(owner, "Test", List.of(item)));
 	}
 
 	@Test
@@ -169,11 +153,18 @@ class TemplateServiceTest {
 	@Test
 	void createTemplate_createsTemplate() {
 		UUID ownerId = UUID.randomUUID();
+		UUID exerciseId = UUID.randomUUID();
 		WorkoutTemplate saved = new WorkoutTemplate();
 		saved.setId(UUID.randomUUID());
+		when(workoutTemplateRepository.existsByOwnerUserIdAndNameIgnoreCase(ownerId, "Test")).thenReturn(false);
 		when(workoutTemplateRepository.save(any(WorkoutTemplate.class))).thenReturn(saved);
+		when(exerciseRepository.findAllById(anyList())).thenReturn(List.of(Exercise.builder()
+				.id(exerciseId)
+				.ownerUserId(ownerId)
+				.build()));
 
-		WorkoutTemplate result = templateService.createTemplate(ownerId, "Test", null);
+		TemplateItemData item = new TemplateItemData(exerciseId, 3, 0, null, null, null, null);
+		WorkoutTemplate result = templateService.createTemplate(ownerId, "Test", List.of(item));
 		assertNotNull(result);
 	}
 
